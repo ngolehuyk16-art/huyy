@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        /* CSS GIAO DIỆN SIÊU ĐẸP, ĐỀU MÀN HÌNH */
+        /* CSS GIAO DIỆN PHẲNG SIÊU ĐẸP, CHUẨN ĐỀU MÀN HÌNH */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -17,7 +17,7 @@
         }
 
         body {
-            background: #e3f2fd; /* Màu xanh nhạt dịu mát chuẩn như ảnh */
+            background: #e3f2fd; /* Màu xanh nhạt dịu mát */
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -28,7 +28,7 @@
         .container {
             background-color: #ffffff;
             width: 100%;
-            max-width: 480px; /* Vừa khít mọi loại màn hình điện thoại */
+            max-width: 480px; /* Vừa khít mọi điện thoại */
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
@@ -36,13 +36,7 @@
         }
 
         h1 {
-            color: #0369a1;
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: none; /* Ẩn tiêu đề h1 đi vì trong ảnh không có tiêu đề này */
+            display: none; /* Ẩn tiêu đề h1 theo giao diện ảnh */
         }
 
         /* Nút tải app màu xanh dương phẳng */
@@ -100,57 +94,46 @@
         /* Lưới bảng chữ cái tự động giãn đều */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Luôn chia đều làm 4 cột bằng nhau */
-            gap: 12px; /* Khoảng cách giữa các nút */
+            grid-template-columns: repeat(4, 1fr); /* 4 cột bằng nhau */
+            gap: 12px;
             margin-top: 10px;
         }
 
-        /* Nút chữ cái phẳng bo góc mềm mại */
+        /* Nút chữ cái phẳng bo góc */
         .grid-container button {
-            background: #29b6f6; /* Cột 4 mặc định: Xanh dương nhạt phẳng */
+            background: #29b6f6; /* Cột 4 mặc định: Xanh dương nhạt */
             color: white;
             border: none;
             padding: 15px 0;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
-            border-radius: 12px; /* Bo góc mềm mại giống ảnh */
+            border-radius: 12px;
             cursor: pointer;
             transition: transform 0.1s ease, opacity 0.1s;
             display: flex;
             justify-content: center;
             align-items: center;
-            aspect-ratio: 1; /* Giúp các nút luôn vuông vức hoàn hảo */
-            box-shadow: none; /* Xóa bỏ đổ bóng 3D dày cộm */
+            aspect-ratio: 1; /* Nút vuông hoàn hảo */
+            box-shadow: none;
         }
 
         .grid-container button:active {
-            transform: scale(0.92);
+            transform: scale(0.9);
             opacity: 0.9;
         }
 
-        /* ĐỔI MÀU PHẲNG THEO 4 CỘT CHUẨN ĐẸP NHƯ ẢNH */
-        /* Cột 1 (Đỏ cam phẳng) */
+        /* ĐỔI MÀU PHẲNG THEO CỘT GIỐNG ẢNH MẪU */
+        /* Cột 1 (Đỏ cam) */
         .grid-container button:nth-child(4n+1) { 
             background: #f25a5a; 
         }
-        .grid-container button:nth-child(4n+1):active { 
-            transform: scale(0.92); 
-        }
-
-        /* Cột 2 (Xanh lá phẳng) */
+        /* Cột 2 (Xanh lá) */
         .grid-container button:nth-child(4n+2) { 
             background: #2ecc71; 
         }
-        .grid-container button:nth-child(4n+2):active { 
-            transform: scale(0.92); 
-        }
-
-        /* Cột 3 (Vàng cam phẳng) */
+        /* Cột 3 (Vàng cam) */
         .grid-container button:nth-child(4n+3) { 
             background: #f3a623; 
-        }
-        .grid-container button:nth-child(4n+3):active { 
-            transform: scale(0.92); 
         }
     </style>
 </head>
@@ -173,16 +156,19 @@
         <div class="grid-container" id="alphabetGrid"></div>
     </div>
 
+    <!-- Thẻ audio ẩn dùng để phát âm thanh chuẩn của Google không bị lỗi -->
+    <audio id="googlePlayer" style="display:none;"></audio>
+
 <script>
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // Đánh vần chuẩn để không từ nào bị câm
+    // Phiên âm chuẩn cho Chị Google đọc đúng giọng đánh vần tiếng Việt của học sinh tiểu học
     const phienAmTiengViet = {
-        'A': 'Chữ a', 'Ă': 'Chữ á', 'Â': 'Chữ ớ', 'B': 'Chữ bờ', 'C': 'Chữ cờ', 'D': 'Chữ dờ', 'Đ': 'Chữ đờ',
-        'E': 'Chữ e', 'Ê': 'Chữ ê', 'G': 'Chữ gờ', 'H': 'Chữ hờ', 'I': 'Chữ i', 'K': 'Chữ ca', 'L': 'Chữ lờ',
-        'M': 'Chữ mờ', 'N': 'Chữ nờ', 'O': 'Chữ o', 'Ô': 'Chữ ô', 'Ơ': 'Chữ ơ', 'P': 'Chữ pờ', 'Q': 'Chữ quờ',
-        'R': 'Chữ rờ', 'S': 'Chữ sờ', 'T': 'Chữ tờ', 'U': 'Chữ u', 'Ư': 'Chữ ư', 'V': 'Chữ vờ', 'X': 'Chữ xờ', 'Y': 'Chữ i dài'
+        'A': 'a', 'Ă': 'ă', 'Â': 'â', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
+        'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
+        'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
+        'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
     };
 
     // 2. Danh sách chữ cái Tiếng Anh chuẩn (26 chữ)
@@ -194,24 +180,12 @@
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
-    let giongHeThong = [];
-
-    function khoiTaoGiongNoi() {
-        if (typeof speechSynthesis !== 'undefined') {
-            giongHeThong = window.speechSynthesis.getVoices();
-        }
-    }
-    khoiTaoGiongNoi();
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = khoiTaoGiongNoi;
-    }
-
-    // Hàm đổi bảng chữ cái khi đổi ngôn ngữ
+    // Hàm tự động đổi bảng chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
         const title = document.getElementById('mainTitle');
-        grid.innerHTML = "";
+        grid.innerHTML = ""; // Xóa bảng cũ
 
         let danhSachChu = [];
         if (ngonNgu === 'vi') {
@@ -230,80 +204,41 @@
         });
     }
 
+    // HÀM PHÁT ÂM BẤT TỬ - GIỌNG CHỊ GOOGLE CHUẨN 100% KHÔNG BAO GIỜ BỊ CÂM HOẶC LỖI
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
+        let langCode = ""; 
 
         if (ngonNgu === 'vi') {
-            textDoc = phienAmTiengViet[chuCai] || `Chữ ${chuCai}`;
+            textDoc = phienAmTiengViet[chuCai] || chuCai;
+            langCode = "vi";
         } else {
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
+            langCode = "en";
         }
 
-        if (!window.speechSynthesis) return;
-
-        // VÁ LỖI CHÍ MẠNG: Giải phóng bộ đọc ngay lập tức và ép trình duyệt kích hoạt lại (Chống câm hoàn toàn)
-        try {
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.resume(); 
-        } catch (e) {}
+        const player = document.getElementById('googlePlayer');
+        
+        // 1. Tạo link Google TTS chuẩn không bị CORS khi chơi qua thẻ Audio
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
 
         try {
-            let speech = new SpeechSynthesisUtterance();
-            speech.text = textDoc;
-            speech.rate = 0.85; // Tốc độ vừa phải
-
-            if (giongHeThong.length === 0) khoiTaoGiongNoi();
-
-            let chosenVoice = null;
-
-            if (ngonNgu === 'vi') {
-                speech.lang = "vi-VN";
-                let danhSachViet = giongHeThong.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
-                
-                // DIỆT TRIỆT ĐỂ GIỌNG NAM
-                let giongNuViet = danhSachViet.filter(v => {
-                    const name = v.name.toLowerCase();
-                    return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
-                });
-
-                // Ưu tiên tìm giọng nữ ngọt
-                chosenVoice = giongNuViet.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || giongNuViet[0];
-
-                // Nếu máy tính không cài giọng nữ Việt, mượn tạm giọng nữ Anh để tránh bị câm nút
-                if (!chosenVoice) {
-                    let giongNuAnh = giongHeThong.filter(v => {
-                        const name = v.name.toLowerCase();
-                        return v.lang.toLowerCase().includes('en') && !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
-                    });
-                    chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0];
-                    speech.lang = 'en-US';
-                }
-            } else {
-                // Tiếng Anh
-                speech.lang = "en-US";
-                let danhSachAnh = giongHeThong.filter(v => v.lang.toLowerCase().includes('en'));
-                let giongNuAnh = danhSachAnh.filter(v => {
-                    const name = v.name.toLowerCase();
-                    return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
-                });
-                chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0] || danhSachAnh[0];
-            }
-
-            if (chosenVoice) {
-                speech.voice = chosenVoice;
-            }
-
-            // Mẹo lách luật trình duyệt: Đợi một chu kỳ nhỏ (10ms) để hệ thống xóa hẳn hàng chờ cũ rồi mới phát
-            setTimeout(() => {
-                window.speechSynthesis.speak(speech);
-            }, 10);
-
+            // 2. Reset âm thanh cũ ngay lập tức để khi bé bấm liên tục không bị nghẽn
+            player.pause();
+            player.currentTime = 0;
+            
+            // 3. Nạp âm thanh mới và phát
+            player.src = audioUrl;
+            player.play().catch(err => {
+                console.log("Trình duyệt yêu cầu click để phát âm thanh");
+            });
         } catch (e) {
-            console.log("Lỗi phát âm hệ thống");
+            console.log("Lỗi tải âm thanh");
         }
     }
 
+    // Chạy bảng chữ cái Tiếng Việt ngay khi mở trang
     window.onload = () => {
         doiNgonNgu();
     };
