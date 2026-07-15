@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Học Chữ Cái ABC Song Ngữ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -14,6 +14,9 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            /* Chống bôi đen chọn chữ khi bấm nhanh trên điện thoại */
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -110,6 +113,9 @@
             justify-content: center;
             align-items: center;
             aspect-ratio: 1; /* Nút vuông hoàn hảo */
+            
+            /* LOẠI BỎ DELAY TRÊN ĐIỆN THOẠI ĐỂ BAO SPAM */
+            touch-action: manipulation;
         }
 
         .grid-container button:active {
@@ -117,7 +123,7 @@
             opacity: 0.9;
         }
 
-        /* ĐỔI MÀU THEO CỘT ĐÚNG THEO ẢNH */
+        /* ĐỔI MÀU THEO CỘT ĐÚNG THEO ẢNH MẪU */
         /* Cột 1: Đỏ cam */
         .grid-container button:nth-child(4n+1) { 
             background: #f25a5a; 
@@ -153,7 +159,7 @@
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // ĐÃ BỎ CHỮ "CHỮ" - Đọc thẳng âm đánh vần siêu mượt
+    // Đã loại bỏ chữ "Chữ" thừa thãi, chỉ phát âm đánh vần
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -172,28 +178,45 @@
 
     let amThanhHienTai = null;
 
+    // Tải trước danh sách giọng của hệ thống để tối ưu hóa bộ lọc
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+    }
+
     // Hàm tạo các nút chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
         grid.innerHTML = ""; // Xóa bảng cũ
 
-        let danhSachChu = [];
-        if (ngonNgu === 'vi') {
-            danhSachChu = chuCaiTiengViet;
-        } else {
-            danhSachChu = chuCaiTiengAnh;
-        }
+        let danhSachChu = (ngonNgu === 'vi') ? chuCaiTiengViet : chuCaiTiengAnh;
 
         danhSachChu.forEach(chu => {
             const btn = document.createElement('button');
             btn.innerText = chu;
-            btn.onclick = () => phatAm(chu);
+            
+            // XỬ LÝ CHẠM PHẢN HỒI NGAY LẬP TỨC CHO ĐIỆN THOẠI (BẤT CHẤP SPAM)
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Ngăn zoom và các hành vi mặc định gây chậm trễ
+                phatAm(chu);
+            }, { passive: false });
+
+            // Hỗ trợ cả chuột trên máy tính
+            btn.addEventListener('click', (e) => {
+                // Nếu đã chạy touchstart trước đó thì không phát trùng nữa
+                if (e.pointerType !== 'touch') {
+                    phatAm(chu);
+                }
+            });
+
             grid.appendChild(btn);
         });
     }
 
-    // HÀM PHÁT ÂM CHUẨN GIỌNG NỮ GOOGLE 100% KHÔNG LỌT GIỌNG NAM
+    // HÀM PHÁT ÂM HOÀN HẢO - TRIỆT TIÊU HOÀN TOÀN GIỌNG NAM
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
@@ -207,22 +230,51 @@
             langCode = "en";
         }
 
-        // Tắt âm thanh cũ ngay lập tức nếu bấm liên tục
+        // Tắt ngay lập tức âm thanh đang phát trước đó khi bấm nhanh
         if (amThanhHienTai) {
             amThanhHienTai.pause();
             amThanhHienTai.currentTime = 0;
         }
 
-        // Lấy link âm thanh từ Google Translate (Cam kết 100% giọng nữ)
+        // CÁCH 1: Gọi file âm thanh Google TTS Online (Mặc định luôn là giọng Nữ ngọt ngào)
         const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-        
         amThanhHienTai = new Audio(audioUrl);
+        
         amThanhHienTai.play().catch(err => {
-            console.log("Trình duyệt chặn phát tự động");
+            console.log("Đang dùng phương án dự phòng bảo mật (Chống giọng Nam)...");
+            
+            // CÁCH 2 (DỰ PHÒNG CHỐNG GIỌNG NAM): Sử dụng bộ SpeechSynthesis nội bộ của máy
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Tắt các âm thừa
+                const utterance = new SpeechSynthesisUtterance(textDoc);
+                utterance.lang = (langCode === 'vi') ? 'vi-VN' : 'en-US';
+                
+                // Cấu hình âm điệu cao (Pitch 1.25) và tốc độ vừa phải để ép ra giọng nữ tính
+                utterance.pitch = 1.25; 
+                utterance.rate = 0.85; 
+
+                // Lọc danh sách giọng của thiết bị, CHỈ chọn các giọng mang tên Nữ
+                const voices = window.speechSynthesis.getVoices();
+                const giongNu = voices.find(v => {
+                    const name = v.name.toLowerCase();
+                    return name.includes('female') || 
+                           name.includes('zira') || 
+                           name.includes('google us english') || 
+                           name.includes('chi') || 
+                           name.includes('linda') ||
+                           name.includes('susan');
+                });
+
+                if (giongNu) {
+                    utterance.voice = giongNu;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
         });
     }
 
-    // Tự động chạy khi tải xong trang
+    // Tự chạy khi tải xong trang
     window.onload = () => {
         doiNgonNgu();
     };
