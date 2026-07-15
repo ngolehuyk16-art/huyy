@@ -3,63 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Chữ Cái ABC</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Học Chữ Cái ABC Song Ngữ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Nhúng thư viện giọng nói (Có thêm thuộc tính defer để tránh nghẽn trang) -->
     <script defer src="https://code.responsivevoice.org/responsivevoice.js?key=87g92X93"></script>
+
+    <style>
+        /* CSS GIAO DIỆN SIÊU ĐẸP, ĐỀU MÀN HÌNH */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2fe, #f0fdf4);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 480px; /* Vừa khít mọi loại màn hình điện thoại */
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        h1 {
+            color: #0369a1;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Nút tải app */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 20px;
+            width: 100%;
+            transition: background 0.2s;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .download-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Bộ chọn ngôn ngữ */
+        .language-selector {
+            background-color: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .language-selector label {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .language-selector select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #cbd5e1;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            outline: none;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        /* Lưới bảng chữ cái tự động giãn đều */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Luôn chia đều làm 4 cột bằng nhau */
+            gap: 10px; /* Khoảng cách giữa các nút */
+            margin-top: 10px;
+        }
+
+        /* Nút chữ cái */
+        .grid-container button {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: white;
+            border: none;
+            padding: 15px 0;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 0px #0284c7;
+            transition: all 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1; /* Giúp các nút luôn vuông vức hoàn hảo */
+        }
+
+        .grid-container button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px #0284c7;
+        }
+
+        /* Đổi màu ngẫu nhiên cho các nút sinh động */
+        .grid-container button:nth-child(4n+1) { background: linear-gradient(135deg, #f87171, #ef4444); box-shadow: 0 4px 0px #dc2626; }
+        .grid-container button:nth-child(4n+1):active { box-shadow: 0 0 0 #dc2626; }
+
+        .grid-container button:nth-child(4n+2) { background: linear-gradient(135deg, #4ade80, #22c55e); box-shadow: 0 4px 0px #16a34a; }
+        .grid-container button:nth-child(4n+2):active { box-shadow: 0 0 0 #16a34a; }
+
+        .grid-container button:nth-child(4n+3) { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 4px 0px #d97706; }
+        .grid-container button:nth-child(4n+3):active { box-shadow: 0 0 0 #d97706; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>BẢNG CHỮ CÁI</h1>
+        <h1 id="mainTitle">BẢNG CHỮ CÁI TIẾNG VIỆT</h1>
 
         <a href="https://drive.google.com/file/d/1WzcqoEnkLBRWp2ui4BG4HmvnM939iS9F/view?usp=sharing" target="_blank" class="download-btn">
-            <i class="fa-solid fa-download"></i> Tải Ứng Dụng Cho Điện Thoại (File .APK)
+    <i class="fa-solid fa-download"></i> Tải Ứng Dụng Cho Điện Thoại (File .APK)
         </a>
 
         <div class="language-selector">
             <label for="langSelect"><b>Chọn Ngôn Ngữ Đọc:</b></label>
-            <select id="langSelect">
-                <option value="vi" selected>Tiếng Việt (Giọng Nữ Đánh Vần)</option>
-                <option value="en">Tiếng Anh (English Female)</option>
+            <select id="langSelect" onchange="doiNgonNgu()">
+                <option value="vi" selected>Tiếng Việt </option>
+                <option value="en">Tiếng Anh </option>
             </select>
         </div>
 
-        <div class="grid-container">
-            <button onclick="phatAm('A')">A</button>
-            <button onclick="phatAm('Ă')">Ă</button>
-            <button onclick="phatAm('Â')">Â</button>
-            <button onclick="phatAm('B')">B</button>
-            <button onclick="phatAm('C')">C</button>
-            <button onclick="phatAm('D')">D</button>
-            <button onclick="phatAm('Đ')">Đ</button>
-            <button onclick="phatAm('E')">E</button>
-            <button onclick="phatAm('Ê')">Ê</button>
-            <button onclick="phatAm('G')">G</button>
-            <button onclick="phatAm('H')">H</button>
-            <button onclick="phatAm('I')">I</button>
-            <button onclick="phatAm('K')">K</button>
-            <button onclick="phatAm('L')">L</button>
-            <button onclick="phatAm('M')">M</button>
-            <button onclick="phatAm('N')">N</button>
-            <button onclick="phatAm('O')">O</button>
-            <button onclick="phatAm('Ô')">Ô</button>
-            <button onclick="phatAm('Ơ')">Ơ</button>
-            <button onclick="phatAm('P')">P</button>
-            <button onclick="phatAm('Q')">Q</button>
-            <button onclick="phatAm('R')">R</button>
-            <button onclick="phatAm('S')">S</button>
-            <button onclick="phatAm('T')">T</button>
-            <button onclick="phatAm('U')">U</button>
-            <button onclick="phatAm('Ư')">Ư</button>
-            <button onclick="phatAm('V')">V</button>
-            <button onclick="phatAm('X')">X</button>
-            <button onclick="phatAm('Y')">Y</button>
-        </div>
+        <div class="grid-container" id="alphabetGrid"></div>
     </div>
 
 <script>
-    // Bản đồ phát âm Tiếng Việt
+    // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
+    const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -67,12 +167,13 @@
         'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
     };
 
-    // Bản đồ phát âm Tiếng Anh
+    // 2. Danh sách chữ cái Tiếng Anh chuẩn (26 chữ - Đã xóa Ă, Â, Đ, Ê, Ô, Ơ, Ư và thêm F, J, W, Z)
+    const chuCaiTiengAnh = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     const phienAmTiengAnh = {
-        'A': 'ay', 'Ă': 'ay', 'Â': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
-        'E': 'ee', 'Ê': 'ee', 'G': 'jee', 'H': 'aitch', 'I': 'eye', 'K': 'kay', 'L': 'el',
-        'M': 'em', 'N': 'en', 'O': 'oh', 'Ô': 'oh', 'Ơ': 'er', 'P': 'pee', 'Q': 'cue',
-        'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'you', 'V': 'vee', 'X': 'ex', 'Y': 'why'
+        'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch', 
+        'I': 'eye', 'J': 'jay', 'K': 'kay', 'L': 'el', 'M': 'em', 'N': 'en', 'O': 'oh', 'P': 'pee', 
+        'Q': 'cue', 'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'V': 'vee', 'W': 'double you', 
+        'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
     let danhSachGiongNoi = [];
@@ -84,6 +185,31 @@
     loadVoices();
     if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    // Hàm tự động đổi bảng chữ cái khi đổi ngôn ngữ
+    function doiNgonNgu() {
+        const ngonNgu = document.getElementById('langSelect').value;
+        const grid = document.getElementById('alphabetGrid');
+        const title = document.getElementById('mainTitle');
+        grid.innerHTML = ""; // Xóa bảng chữ cái cũ
+
+        let danhSachChu = [];
+        if (ngonNgu === 'vi') {
+            title.innerText = "BẢNG CHỮ CÁI TIẾNG VIỆT";
+            danhSachChu = chuCaiTiengViet;
+        } else {
+            title.innerText = "ENGLISH ALPHABET";
+            danhSachChu = chuCaiTiengAnh;
+        }
+
+        // Tạo lại các nút chữ cái mới cực đẹp
+        danhSachChu.forEach(chu => {
+            const btn = document.createElement('button');
+            btn.innerText = chu;
+            btn.onclick = () => phatAm(chu);
+            grid.appendChild(btn);
+        });
     }
 
     function phatAm(chuCai) {
@@ -102,19 +228,13 @@
             targetLang = "en-US";
         }
 
-        // 1. Tắt tất cả âm thanh cũ (Tránh đè tiếng)
+        // Tắt âm thanh cũ ngay lập tức tránh đè tiếng
         try {
-            if (window.responsiveVoice) {
-                window.responsiveVoice.cancel();
-            }
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-            }
-        } catch (e) {
-            console.log("Không thể tắt âm thanh cũ");
-        }
+            if (window.responsiveVoice) window.responsiveVoice.cancel();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        } catch (e) {}
 
-        // 2. PHƯƠNG ÁN 1: Thử dùng ResponsiveVoice (Giọng nữ cực chuẩn)
+        // PHƯƠNG ÁN 1: Sử dụng ResponsiveVoice (ÉP GIỌNG NỮ chuẩn 100%)
         if (window.responsiveVoice && typeof window.responsiveVoice.speak === 'function') {
             try {
                 if (ngonNgu === 'vi') {
@@ -122,64 +242,67 @@
                 } else {
                     window.responsiveVoice.speak(textDoc, "US English Female", { rate: 0.85 });
                 }
-                return; // Đã phát thành công, thoát hàm
-            } catch (err) {
-                console.log("ResponsiveVoice bị lỗi, chuyển sang phương án dự phòng.");
-            }
+                return; 
+            } catch (err) {}
         }
 
-        // 3. PHƯƠNG ÁN DỰ PHÒNG 2: Sử dụng SpeechSynthesis hệ thống của điện thoại (Không lo lỗi)
-        if (window.speechSynthesis) {
-            try {
-                let speech = new SpeechSynthesisUtterance();
-                speech.text = textDoc;
-                speech.lang = targetLang;
-                speech.rate = 0.85;
-
-                if (danhSachGiongNoi.length === 0) {
-                    loadVoices();
-                }
-
-                let chosenVoice = null;
-                if (ngonNgu === 'vi') {
-                    chosenVoice = danhSachGiongNoi.find(voice => {
-                        const name = voice.name.toLowerCase();
-                        return (voice.lang.includes('vi') || voice.lang.includes('VN')) && 
-                               (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female') || name.includes('woman'));
-                    });
-                    if (!chosenVoice) {
-                        chosenVoice = danhSachGiongNoi.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
-                    }
-                } else {
-                    chosenVoice = danhSachGiongNoi.find(voice => {
-                        const name = voice.name.toLowerCase();
-                        return (voice.lang.toLowerCase().includes('en')) && 
-                               (name.includes('zira') || name.includes('samantha') || name.includes('karen') || name.includes('female') || name.includes('woman'));
-                    });
-                    if (!chosenVoice) {
-                        chosenVoice = danhSachGiongNoi.find(voice => voice.lang.toLowerCase().includes('en'));
-                    }
-                }
-
-                if (chosenVoice) {
-                    speech.voice = chosenVoice;
-                }
-                window.speechSynthesis.speak(speech);
-                return; // Đã phát thành công, thoát hàm
-            } catch (err) {
-                console.log("SpeechSynthesis hệ thống bị lỗi.");
-            }
-        }
-
-        // 4. PHƯƠNG ÁN DỰ PHÒNG CUỐI CÙNG: Phát trực tuyến qua Google API
+        // PHƯƠNG ÁN 2: Sử dụng Google TTS API trực tuyến (AN TOÀN NHẤT - MẶC ĐỊNH 100% GIỌNG CHỊ GOOGLE NỮ)
+        // Dùng phương án này để đè bẹp giọng nam của máy điện thoại
         try {
             let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
             let audio = new Audio(audioUrl);
-            audio.play().catch(err => console.log("Google TTS bị chặn."));
+            audio.play().then(() => {
+                return; // Đã chạy bằng giọng chị Google thành công!
+            }).catch(err => {
+                // Nếu bị chặn thì chạy phương án dự phòng cuối cùng
+                chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu);
+            });
         } catch (err) {
-            console.log("Tất cả các phương thức phát âm đều thất bại.");
+            chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu);
         }
     }
+
+    // PHƯƠNG ÁN DỰ PHÒNG CUỐI CÙNG: Chỉ dùng khi mất mạng internet (Lọc gắt gao loại bỏ giọng Nam)
+    function chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu) {
+        if (!window.speechSynthesis) return;
+        try {
+            let speech = new SpeechSynthesisUtterance();
+            speech.text = textDoc;
+            speech.lang = targetLang;
+            speech.rate = 0.85;
+
+            if (danhSachGiongNoi.length === 0) loadVoices();
+
+            let chosenVoice = null;
+            if (ngonNgu === 'vi') {
+                let viVoices = danhSachGiongNoi.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
+                // Lọc bỏ tất cả giọng nam
+                let viFemale = viVoices.filter(v => {
+                    const name = v.name.toLowerCase();
+                    return !name.includes('male') && !name.includes('nam') && !name.includes('guy') && !name.includes('man');
+                });
+                chosenVoice = viFemale.find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || viFemale[0] || viVoices[0];
+            } else {
+                let enVoices = danhSachGiongNoi.filter(v => v.lang.toLowerCase().includes('en'));
+                // Lọc bỏ tất cả giọng nam
+                let enFemale = enVoices.filter(v => {
+                    const name = v.name.toLowerCase();
+                    return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
+                });
+                chosenVoice = enFemale.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || enFemale[0] || enVoices[0];
+            }
+
+            if (chosenVoice) speech.voice = chosenVoice;
+            window.speechSynthesis.speak(speech);
+        } catch (e) {
+            console.log("Lỗi phát âm hệ thống");
+        }
+    }
+
+    // Tự động kích hoạt bảng chữ cái Tiếng Việt ngay khi mở trang
+    window.onload = () => {
+        doiNgonNgu();
+    };
 </script>
 </body>
 </html>
