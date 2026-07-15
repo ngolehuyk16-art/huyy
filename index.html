@@ -218,7 +218,7 @@
         });
     }
 
-    // HÀM PHÁT ÂM HOÀN HẢO - TRIỆT TIÊU HOÀN TOÀN GIỌNG NAM VÀ TIẾNG ANH LƠ LỚ
+    // HÀM PHÁT ÂM HOÀN HẢO - TRIỆT TIÊU HOÀN TOÀN GIỌNG NAM VÀ SỬA ĐỚ TIẾNG VIỆT
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
@@ -238,7 +238,7 @@
             amThanhHienTai.currentTime = 0;
         }
 
-        // CÁCH 1: Gọi file âm thanh Google TTS Online (Luôn là giọng NỮ ngọt ngào chuẩn mực)
+        // CÁCH 1: Gọi file âm thanh Google TTS Online (Luôn là giọng NỮ ngọt ngào chuẩn mực, không bao giờ bị đớ)
         const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
         amThanhHienTai = new Audio(audioUrl);
         
@@ -253,9 +253,9 @@
                 // Cấu hình ngôn ngữ chuẩn tránh tiếng Anh lơ lớ
                 utterance.lang = (langCode === 'vi') ? 'vi-VN' : 'en-US';
                 
-                // Cấu hình âm điệu cao (Pitch 1.25) và tốc độ vừa phải để giả lập giọng nữ ngọt ngào
-                utterance.pitch = 1.25; 
-                utterance.rate = 0.85; 
+                // ĐÃ SỬA: Đưa cao độ về mức chuẩn 1.0 và tốc độ 0.95 để không bị "đớ" giọng robot
+                utterance.pitch = 1.0; 
+                utterance.rate = 0.95; 
 
                 // Lọc danh sách giọng của thiết bị, CHỈ CHỌN các giọng ngôn ngữ phù hợp và là NỮ
                 const voices = window.speechSynthesis.getVoices();
