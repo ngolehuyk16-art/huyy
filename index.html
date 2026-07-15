@@ -48,6 +48,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Học Chữ Cái ABC Song Ngữ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <style>
         /* CSS GIAO DIỆN PHẲNG SIÊU ĐẸP, CHUẨN ĐỀU MÀN HÌNH */
         * {
@@ -57,6 +58,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
+
         body {
             background: #e3f2fd; /* Màu xanh nhạt dịu mát */
             min-height: 100vh;
@@ -65,6 +67,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             align-items: center;
             padding: 15px;
         }
+
         .container {
             background-color: #ffffff;
             width: 100%;
@@ -74,9 +77,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             text-align: center;
         }
-        h1 {
-            display: none; /* Ẩn tiêu đề h1 theo giao diện ảnh */
-        }
+
         /* Nút tải app màu xanh dương phẳng */
         .download-btn {
             display: inline-flex;
@@ -94,9 +95,11 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             width: 100%;
             transition: background 0.2s;
         }
+
         .download-btn:hover {
             background-color: #154ec2;
         }
+
         /* Bộ chọn ngôn ngữ */
         .language-selector {
             background-color: #ffffff;
@@ -105,6 +108,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             margin-bottom: 20px;
             border: 1px solid #e2e8f0;
         }
+
         .language-selector label {
             display: block;
             font-size: 13px;
@@ -112,6 +116,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             font-weight: bold;
             margin-bottom: 8px;
         }
+
         .language-selector select {
             width: 100%;
             padding: 10px;
@@ -124,6 +129,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             cursor: pointer;
             background-color: white;
         }
+
         /* Lưới bảng chữ cái tự động giãn đều */
         .grid-container {
             display: grid;
@@ -131,9 +137,10 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             gap: 12px;
             margin-top: 10px;
         }
+
         /* Nút chữ cái phẳng bo góc */
         .grid-container button {
-            background: #29b6f6; /* Cột 4 mặc định: Xanh dương nhạt */
+            background: #29b6f6; /* Cột 4 mặc định: Xanh dương */
             color: white;
             border: none;
             padding: 15px 0;
@@ -146,13 +153,14 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             justify-content: center;
             align-items: center;
             aspect-ratio: 1; /* Nút vuông hoàn hảo */
-            box-shadow: none;
         }
+
         .grid-container button:active {
             transform: scale(0.9);
             opacity: 0.9;
         }
-        /* ĐỔI MÀU PHẲNG THEO CỘT GIỐNG ẢNH MẪU */
+
+        /* ĐỔI MÀU THEO CỘT CHUẨN ĐẸP */
         /* Cột 1 (Đỏ cam) */
         .grid-container button:nth-child(4n+1) { 
             background: #f25a5a; 
@@ -166,13 +174,16 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             background: #f3a623; 
         }
     </style>
+
+    <!-- Thư viện âm thanh bất tử của ResponsiveVoice -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=9E3A5JbA"></script>
 </head>
 <body>
     <div class="container">
-        <h1 id="mainTitle">BẢNG CHỮ CÁI TIẾNG VIỆT</h1>
         <a href="https://drive.google.com/file/d/1WzcqoEnkLBRWp2ui4BG4HmvnM939iS9F/view?usp=sharing" target="_blank" class="download-btn">
             <i class="fa-solid fa-download"></i> Tải Ứng Dụng Cho Điện Thoại (File .APK)
         </a>
+
         <div class="language-selector">
             <label for="langSelect"><b>Chọn Ngôn Ngữ Đọc:</b></label>
             <select id="langSelect" onchange="doiNgonNgu()">
@@ -180,21 +191,22 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
                 <option value="en">Tiếng Anh</option>
             </select>
         </div>
+
         <div class="grid-container" id="alphabetGrid"></div>
     </div>
-    <!-- Thẻ audio ẩn dùng để phát âm thanh chuẩn của Google không bị lỗi -->
-    <audio id="googlePlayer" style="display:none;"></audio>
+
 <script>
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // Phiên âm chuẩn cho Chị Google đọc đúng giọng đánh vần tiếng Việt của học sinh tiểu học
+    // Cách phiên âm chuẩn giúp giọng miền Nam của thư viện đọc cực kỳ tự nhiên
     const phienAmTiengViet = {
-        'A': 'a', 'Ă': 'ă', 'Â': 'â', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
-        'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
-        'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
-        'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
+        'A': 'Chữ a', 'Ă': 'Chữ á', 'Â': 'Chữ ớ', 'B': 'Chữ bờ', 'C': 'Chữ cờ', 'D': 'Chữ dờ', 'Đ': 'Chữ đờ',
+        'E': 'Chữ e', 'Ê': 'Chữ ê', 'G': 'Chữ gờ', 'H': 'Chữ hờ', 'I': 'Chữ i', 'K': 'Chữ ca', 'L': 'Chữ lờ',
+        'M': 'Chữ mờ', 'N': 'Chữ nờ', 'O': 'Chữ o', 'Ô': 'Chữ ô', 'Ơ': 'Chữ ơ', 'P': 'Chữ pờ', 'Q': 'Chữ quờ',
+        'R': 'Chữ rờ', 'S': 'Chữ sờ', 'T': 'Chữ tờ', 'U': 'Chữ u', 'Ư': 'Chữ ư', 'V': 'Chữ vờ', 'X': 'Chữ xờ', 'Y': 'Chữ i dài'
     };
+
     // 2. Danh sách chữ cái Tiếng Anh chuẩn (26 chữ)
     const chuCaiTiengAnh = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     const phienAmTiengAnh = {
@@ -203,20 +215,20 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
         'Q': 'cue', 'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'V': 'vee', 'W': 'double you', 
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
-    // Hàm tự động đổi bảng chữ cái khi đổi ngôn ngữ
+
+    // Hàm tự động tạo bảng chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
-        const title = document.getElementById('mainTitle');
         grid.innerHTML = ""; // Xóa bảng cũ
+
         let danhSachChu = [];
         if (ngonNgu === 'vi') {
-            title.innerText = "BẢNG CHỮ CÁI TIẾNG VIỆT";
             danhSachChu = chuCaiTiengViet;
         } else {
-            title.innerText = "ENGLISH ALPHABET";
             danhSachChu = chuCaiTiengAnh;
         }
+
         danhSachChu.forEach(chu => {
             const btn = document.createElement('button');
             btn.innerText = chu;
@@ -224,36 +236,29 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             grid.appendChild(btn);
         });
     }
-    // HÀM PHÁT ÂM BẤT TỬ - GIỌNG CHỊ GOOGLE CHUẨN 100% KHÔNG BAO GIỜ BỊ CÂM HOẶC LỖI
+
+    // HÀM PHÁT ÂM HOÀN HẢO - KHÔNG CÒN LỖI CORS, KHÔNG SỢ BỊ CÂM CHỮ
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
-        let langCode = ""; 
+
         if (ngonNgu === 'vi') {
-            textDoc = phienAmTiengViet[chuCai] || chuCai;
-            langCode = "vi";
+            textDoc = phienAmTiengViet[chuCai] || `Chữ ${chuCai}`;
+            // Phát giọng nữ miền Nam cực ngọt ngào và rõ chữ
+            if (typeof responsiveVoice !== 'undefined') {
+                responsiveVoice.cancel(); // Tắt âm thanh cũ ngay lập tức nếu bấm nhanh
+                responsiveVoice.speak(textDoc, "Vietnamese Female", {rate: 0.95});
+            }
         } else {
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
-            langCode = "en";
-        }
-        const player = document.getElementById('googlePlayer');
-        
-        // 1. Tạo link Google TTS chuẩn không bị CORS khi chơi qua thẻ Audio
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-        try {
-            // 2. Reset âm thanh cũ ngay lập tức để khi bé bấm liên tục không bị nghẽn
-            player.pause();
-            player.currentTime = 0;
-            
-            // 3. Nạp âm thanh mới và phát
-            player.src = audioUrl;
-            player.play().catch(err => {
-                console.log("Trình duyệt yêu cầu click để phát âm thanh");
-            });
-        } catch (e) {
-            console.log("Lỗi tải âm thanh");
+            // Phát giọng nữ Anh chuẩn
+            if (typeof responsiveVoice !== 'undefined') {
+                responsiveVoice.cancel();
+                responsiveVoice.speak(textDoc, "US English Female", {rate: 0.95});
+            }
         }
     }
+
     // Chạy bảng chữ cái Tiếng Việt ngay khi mở trang
     window.onload = () => {
         doiNgonNgu();
