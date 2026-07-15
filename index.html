@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Học Chữ Cái ABC Song Ngữ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script defer src="https://code.responsivevoice.org/responsivevoice.js?key=87g92X93"></script>
 
     <style>
         /* CSS GIAO DIỆN SIÊU ĐẸP, ĐỀU MÀN HÌNH */
@@ -43,7 +42,7 @@
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            display: none; /* Ẩn tiêu đề h1 đi vì trong ảnh của ní không có tiêu đề này */
+            display: none; /* Ẩn tiêu đề h1 đi vì trong ảnh không có tiêu đề này */
         }
 
         /* Nút tải app màu xanh dương phẳng */
@@ -102,7 +101,7 @@
         .grid-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr); /* Luôn chia đều làm 4 cột bằng nhau */
-            gap: 12px; /* Khoảng cách giữa các nút giống ảnh */
+            gap: 12px; /* Khoảng cách giữa các nút */
             margin-top: 10px;
         }
 
@@ -193,16 +192,7 @@
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
-    let danhSachGiongNoi = [];
-    function loadVoices() {
-        if (typeof speechSynthesis !== 'undefined') {
-            danhSachGiongNoi = window.speechSynthesis.getVoices();
-        }
-    }
-    loadVoices();
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-    }
+    let audioHienTai = null;
 
     // Hàm tự động đổi bảng chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
@@ -233,98 +223,30 @@
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
         let langCode = ""; 
-        let targetLang = ""; 
 
         if (ngonNgu === 'vi') {
             textDoc = phienAmTiengViet[chuCai] || chuCai;
             langCode = "vi";
-            targetLang = "vi-VN";
         } else {
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
             langCode = "en";
-            targetLang = "en-US";
         }
 
         // Tắt âm thanh cũ ngay lập tức tránh đè tiếng
-        try {
-            if (window.responsiveVoice) window.responsiveVoice.cancel();
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-        } catch (e) {}
-
-        // PHƯƠNG ÁN 1: Sử dụng ResponsiveVoice (ÉP GIỌNG NỮ chuẩn 100%)
-        if (window.responsiveVoice && typeof window.responsiveVoice.speak === 'function') {
-            try {
-                if (ngonNgu === 'vi') {
-                    window.responsiveVoice.speak(textDoc, "Vietnamese Female", { rate: 0.85 });
-                } else {
-                    window.responsiveVoice.speak(textDoc, "US English Female", { rate: 0.85 });
-                }
-                return; 
-            } catch (err) {}
+        if (audioHienTai) {
+            audioHienTai.pause();
+            audioHienTai.currentTime = 0;
         }
 
-        // PHƯƠNG ÁN 2: Sử dụng Google TTS API trực tuyến (AN TOÀN NHẤT - MẶC ĐỊNH 100% GIỌNG CHỊ GOOGLE NỮ)
+        // SỬ DỤNG GOOGLE TTS (Hàng hiệu, cam kết giọng NỮ ngọt ngào chuẩn 100% trên cả Máy tính lẫn GitHub Pages)
         try {
             let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-            let audio = new Audio(audioUrl);
-            audio.play().then(() => {
-                return; // Đã chạy bằng giọng chị Google thành công!
-            }).catch(err => {
-                // Nếu bị chặn trên Github Pages, tự động nhảy xuống bộ đọc hệ thống đã được lọc sạch giọng nam
-                chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu);
+            audioHienTai = new Audio(audioUrl);
+            audioHienTai.play().catch(err => {
+                console.log("Cần click chuột vào trang để kích hoạt âm thanh");
             });
         } catch (err) {
-            chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu);
-        }
-    }
-
-    // PHƯƠNG ÁN DỰ PHÒNG CUỐI CÙNG: ĐÃ ĐƯỢC LỌC GẮT GAO ĐỂ DIỆT GIỌNG NAM TRÊN MÁY TÍNH
-    function chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu) {
-        if (!window.speechSynthesis) return;
-        try {
-            let speech = new SpeechSynthesisUtterance();
-            speech.text = textDoc;
-            speech.lang = targetLang;
-            speech.rate = 0.85;
-
-            if (danhSachGiongNoi.length === 0) loadVoices();
-
-            let chosenVoice = null;
-            if (ngonNgu === 'vi') {
-                let viVoices = danhSachGiongNoi.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
-                
-                // LỌC TRIỆT ĐỂ: Loại bỏ tất cả giọng có chứa chữ 'nam', 'minh', 'male', 'man', 'guy'
-                let viFemale = viVoices.filter(v => {
-                    const name = v.name.toLowerCase();
-                    return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
-                });
-                
-                // Ưu tiên tìm giọng nữ Microsoft HoaiMy (trên Windows) hoặc giọng nữ của Google/Apple
-                chosenVoice = viFemale.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || viFemale[0];
-                
-                // Nếu không tìm thấy bất kỳ giọng Nữ tiếng Việt nào khác (chỉ còn mỗi ông NamMinh), thà đọc bằng giọng Nữ tiếng Anh còn hơn cho giọng nam đọc!
-                if (!chosenVoice) {
-                    let enFemaleVoices = danhSachGiongNoi.filter(v => {
-                        const name = v.name.toLowerCase();
-                        return v.lang.toLowerCase().includes('en') && !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
-                    });
-                    chosenVoice = enFemaleVoices.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || enFemaleVoices[0];
-                    speech.lang = 'en-US'; // Chuyển mã ngôn ngữ sang tiếng Anh tạm thời
-                }
-            } else {
-                let enVoices = danhSachGiongNoi.filter(v => v.lang.toLowerCase().includes('en'));
-                // Lọc bỏ tất cả giọng nam tiếng Anh
-                let enFemale = enVoices.filter(v => {
-                    const name = v.name.toLowerCase();
-                    return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
-                });
-                chosenVoice = enFemale.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || enFemale[0] || enVoices[0];
-            }
-
-            if (chosenVoice) speech.voice = chosenVoice;
-            window.speechSynthesis.speak(speech);
-        } catch (e) {
-            console.log("Lỗi phát âm hệ thống");
+            console.log("Lỗi phát âm");
         }
     }
 
