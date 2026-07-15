@@ -18,8 +18,8 @@
         <div class="language-selector">
             <label for="langSelect"><b>Chọn Ngôn Ngữ Đọc:</b></label>
             <select id="langSelect">
-                <option value="vi" selected>Tiếng Việt (Đánh vần chuẩn)</option>
-                <option value="en">Tiếng Anh (English)</option>
+                <option value="vi" selected>Tiếng Việt (Giọng Nữ Đánh Vần)</option>
+                <option value="en">Tiếng Anh (English Female)</option>
             </select>
         </div>
 
@@ -57,28 +57,39 @@
     </div>
 
 <script>
+    // 1. Bản đồ phát âm Tiếng Việt (Đánh vần chuẩn mẫu giáo)
+    const phienAmTiengViet = {
+        'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
+        'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
+        'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
+        'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
+    };
+
+    // 2. Bản đồ phát âm Tiếng Anh (Đánh vần chữ cái đơn)
+    const phienAmTiengAnh = {
+        'A': 'ay', 'Ă': 'ay', 'Â': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
+        'E': 'ee', 'Ê': 'ee', 'G': 'jee', 'H': 'aitch', 'I': 'eye', 'K': 'kay', 'L': 'el',
+        'M': 'em', 'N': 'en', 'O': 'oh', 'Ô': 'oh', 'Ơ': 'er', 'P': 'pee', 'Q': 'cue',
+        'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'you', 'V': 'vee', 'X': 'ex', 'Y': 'why'
+    };
+
+    // Nạp sẵn giọng nói hệ thống để giảm thiểu độ trễ
+    let danhSachGiongNoi = [];
+    function loadVoices() {
+        if (typeof speechSynthesis !== 'undefined') {
+            danhSachGiongNoi = window.speechSynthesis.getVoices();
+        }
+    }
+    loadVoices();
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
-
-        // 1. Bản đồ phát âm Tiếng Việt (Đánh vần chuẩn sư phạm tiểu học)
-        const phienAmTiengViet = {
-            'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
-            'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
-            'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
-            'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
-        };
-
-        // 2. Bản đồ phát âm Tiếng Anh (Đánh vần chữ cái đơn tiếng Anh)
-        const phienAmTiengAnh = {
-            'A': 'ay', 'Ă': 'ay', 'Â': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
-            'E': 'ee', 'Ê': 'ee', 'G': 'jee', 'H': 'aitch', 'I': 'eye', 'K': 'kay', 'L': 'el',
-            'M': 'em', 'N': 'en', 'O': 'oh', 'Ô': 'oh', 'Ơ': 'er', 'P': 'pee', 'Q': 'cue',
-            'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'you', 'V': 'vee', 'X': 'ex', 'Y': 'why'
-        };
-
         let textDoc = "";
-        let langCode = ""; // Dành cho Google TTS API
-        let targetLang = ""; // Dành cho SpeechSynthesis hệ thống
+        let langCode = ""; 
+        let targetLang = ""; 
 
         if (ngonNgu === 'vi') {
             textDoc = phienAmTiengViet[chuCai] || chuCai;
@@ -90,58 +101,64 @@
             targetLang = "en-US";
         }
 
-        // Tắt tất cả các giọng đang phát dở tránh đè âm thanh
+        // Tắt các giọng đang phát dở tránh đè âm thanh
         if (window.speechSynthesis) {
             window.speechSynthesis.cancel();
         }
 
-        // --- PHƯƠNG ÁN 1: Sử dụng Google TTS API Trực Tuyến (Giọng Nữ chuẩn & mượt) ---
-        let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-        let audio = new Audio(audioUrl);
-        
-        audio.play().then(() => {
-            console.log("Phát âm trực tuyến thành công: " + textDoc);
-        }).catch(function(error) {
-            // --- PHƯƠNG ÁN 2 (DỰ PHÒNG): Nếu API lỗi hoặc offline, dùng SpeechSynthesis của máy ---
-            console.log("Đang sử dụng giọng đọc dự phòng...");
+        // --- ƯU TIÊN PHƯƠNG ÁN 1: Sử dụng giọng đọc nữ hệ thống (SpeechSynthesis) cực chuẩn ---
+        if (window.speechSynthesis) {
             let speech = new SpeechSynthesisUtterance();
             speech.text = textDoc;
             speech.lang = targetLang;
-            speech.rate = 0.85;
+            speech.rate = 0.85; // Tốc độ chậm, rõ ràng cho bé dễ nghe
 
-            let voices = window.speechSynthesis.getVoices();
+            if (danhSachGiongNoi.length === 0) {
+                loadVoices();
+            }
+
             let chosenVoice = null;
 
             if (ngonNgu === 'vi') {
-                // Ưu tiên giọng nữ Việt
-                chosenVoice = voices.find(voice => {
+                // Lọc kỹ các giọng NỮ tiếng Việt (Hoài An, An, Linh, Lan, Hương, Lê, Mai...)
+                chosenVoice = danhSachGiongNoi.find(voice => {
                     const name = voice.name.toLowerCase();
                     return (voice.lang.includes('vi') || voice.lang.includes('VN')) && 
-                           (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female'));
+                           (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female') || name.includes('woman') || name.includes('hương') || name.includes('mai'));
                 });
+                
+                // Dự phòng: Nếu không có giọng nữ cụ thể, lấy giọng Việt bất kỳ có sẵn
                 if (!chosenVoice) {
-                    chosenVoice = voices.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
+                    chosenVoice = danhSachGiongNoi.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
                 }
             } else {
-                // Ưu tiên giọng nữ Anh
-                chosenVoice = voices.find(voice => {
+                // Lọc tìm giọng NỮ tiếng Anh (Zira, Samantha, Karen, Hazel, Susan, Google US English...)
+                chosenVoice = danhSachGiongNoi.find(voice => {
                     const name = voice.name.toLowerCase();
-                    return voice.lang.includes('en') && 
-                           (name.includes('zira') || name.includes('samantha') || name.includes('karen') || name.includes('female') || name.includes('google us english'));
+                    return (voice.lang.toLowerCase().includes('en')) && 
+                           (name.includes('zira') || name.includes('samantha') || name.includes('karen') || name.includes('female') || name.includes('woman') || name.includes('google us english') || name.includes('hazel') || name.includes('susan'));
                 });
+
+                // Dự phòng: Lấy giọng Anh bất kỳ
+                if (!chosenVoice) {
+                    chosenVoice = danhSachGiongNoi.find(voice => voice.lang.toLowerCase().includes('en'));
+                }
             }
 
+            // Thực hiện phát âm nếu tìm thấy giọng thích hợp
             if (chosenVoice) {
                 speech.voice = chosenVoice;
+                window.speechSynthesis.speak(speech);
+                console.log("Đang đọc giọng nữ hệ thống: " + chosenVoice.name);
+                return; // Kết thúc hàm
             }
+        }
 
-            window.speechSynthesis.speak(speech);
-        });
-    }
-
-    // Load trước danh sách giọng nói
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        // --- PHƯƠNG ÁN 2 (DỰ PHÒNG): Nếu trình duyệt không hỗ trợ, dùng API Google TTS trực tuyến (Giọng nữ mặc định) ---
+        console.log("Không tìm thấy giọng nói local phù hợp, chuyển sang Google TTS...");
+        let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
+        let audio = new Audio(audioUrl);
+        audio.play().catch(err => console.log("Không thể phát âm thanh trực tuyến."));
     }
 </script>
 </body>
