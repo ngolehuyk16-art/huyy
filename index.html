@@ -177,7 +177,7 @@
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // Mẹo "đánh vần" thông minh giúp máy tính Windows/điện thoại đọc chuẩn 100% không bị câm chữ nào
+    // Đánh vần chuẩn để không từ nào bị câm
     const phienAmTiengViet = {
         'A': 'Chữ a', 'Ă': 'Chữ á', 'Â': 'Chữ ớ', 'B': 'Chữ bờ', 'C': 'Chữ cờ', 'D': 'Chữ dờ', 'Đ': 'Chữ đờ',
         'E': 'Chữ e', 'Ê': 'Chữ ê', 'G': 'Chữ gờ', 'H': 'Chữ hờ', 'I': 'Chữ i', 'K': 'Chữ ca', 'L': 'Chữ lờ',
@@ -240,62 +240,67 @@
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
         }
 
-        // Tắt toàn bộ âm thanh đang phát trước đó dứt điểm
-        if (window.speechSynthesis) {
+        if (!window.speechSynthesis) return;
+
+        // VÁ LỖI CHÍ MẠNG: Giải phóng bộ đọc ngay lập tức và ép trình duyệt kích hoạt lại (Chống câm hoàn toàn)
+        try {
             window.speechSynthesis.cancel();
-        }
+            window.speechSynthesis.resume(); 
+        } catch (e) {}
 
-        if (window.speechSynthesis) {
-            try {
-                let speech = new SpeechSynthesisUtterance();
-                speech.text = textDoc;
-                speech.rate = 0.8; // Cho đọc chậm lại một chút cho bé dễ nghe
+        try {
+            let speech = new SpeechSynthesisUtterance();
+            speech.text = textDoc;
+            speech.rate = 0.85; // Tốc độ vừa phải
 
-                if (giongHeThong.length === 0) khoiTaoGiongNoi();
+            if (giongHeThong.length === 0) khoiTaoGiongNoi();
 
-                let chosenVoice = null;
+            let chosenVoice = null;
 
-                if (ngonNgu === 'vi') {
-                    speech.lang = "vi-VN";
-                    let danhSachViet = giongHeThong.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
-                    
-                    // LỌC SẠCH SẼ GIỌNG NAM
-                    let giongNuViet = danhSachViet.filter(v => {
-                        const name = v.name.toLowerCase();
-                        return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
-                    });
-
-                    // Ưu tiên tìm giọng nữ (HoaiMy trên Windows, Google, An, Linh...)
-                    chosenVoice = giongNuViet.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || giongNuViet[0];
-
-                    // TRƯỜNG HỢP DỰ PHÒNG: Nếu máy tính không có giọng nữ Việt nào, dùng tạm giọng nữ Anh để không bị câm
-                    if (!chosenVoice) {
-                        let giongNuAnh = giongHeThong.filter(v => {
-                            const name = v.name.toLowerCase();
-                            return v.lang.toLowerCase().includes('en') && !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
-                        });
-                        chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0];
-                        speech.lang = 'en-US';
-                    }
-                } else {
-                    // Tiếng Anh
-                    speech.lang = "en-US";
-                    let danhSachAnh = giongHeThong.filter(v => v.lang.toLowerCase().includes('en'));
-                    let giongNuAnh = danhSachAnh.filter(v => {
-                        const name = v.name.toLowerCase();
-                        return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
-                    });
-                    chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0] || danhSachAnh[0];
-                }
-
-                if (chosenVoice) {
-                    speech.voice = chosenVoice;
-                }
+            if (ngonNgu === 'vi') {
+                speech.lang = "vi-VN";
+                let danhSachViet = giongHeThong.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
                 
-                window.speechSynthesis.speak(speech);
-            } catch (e) {
-                console.log("Lỗi phát âm hệ thống");
+                // DIỆT TRIỆT ĐỂ GIỌNG NAM
+                let giongNuViet = danhSachViet.filter(v => {
+                    const name = v.name.toLowerCase();
+                    return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
+                });
+
+                // Ưu tiên tìm giọng nữ ngọt
+                chosenVoice = giongNuViet.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || giongNuViet[0];
+
+                // Nếu máy tính không cài giọng nữ Việt, mượn tạm giọng nữ Anh để tránh bị câm nút
+                if (!chosenVoice) {
+                    let giongNuAnh = giongHeThong.filter(v => {
+                        const name = v.name.toLowerCase();
+                        return v.lang.toLowerCase().includes('en') && !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
+                    });
+                    chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0];
+                    speech.lang = 'en-US';
+                }
+            } else {
+                // Tiếng Anh
+                speech.lang = "en-US";
+                let danhSachAnh = giongHeThong.filter(v => v.lang.toLowerCase().includes('en'));
+                let giongNuAnh = danhSachAnh.filter(v => {
+                    const name = v.name.toLowerCase();
+                    return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
+                });
+                chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0] || danhSachAnh[0];
             }
+
+            if (chosenVoice) {
+                speech.voice = chosenVoice;
+            }
+
+            // Mẹo lách luật trình duyệt: Đợi một chu kỳ nhỏ (10ms) để hệ thống xóa hẳn hàng chờ cũ rồi mới phát
+            setTimeout(() => {
+                window.speechSynthesis.speak(speech);
+            }, 10);
+
+        } catch (e) {
+            console.log("Lỗi phát âm hệ thống");
         }
     }
 
