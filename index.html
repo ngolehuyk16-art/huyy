@@ -1,46 +1,3 @@
-Chuyển đến nội dung
-ngolehuyk16-art
-huyy
-Điều hướng kho lưu trữ
-Mã số
-Vấn đề
-Yêu cầu kéo
-Đại lý
-Hành động
-Dự án
-Wiki
-An ninh và chất lượng
-Thông tin chi tiết
-Cài đặt
-Cam kết fec5f46
-ngolehuyk16-art
-ngolehuyk16-art
-tác giả
-2 phút trước
-·
-·
-
-Đã xác minh
-Thêm tệp qua chức năng tải lên
-chủ yếu
-1 phụ huynh
-9488351
-làm
-fec5f46
-1 tệp đã thay đổi
-
-+247​
-Số dòng đã thay đổi: 247 dòng được thêm vào và 0 dòng bị xóa.
-Cây thư mục
-Lọc tệp…
-hh.html
-Tìm kiếm trong mã
- 
-‎hh.html‎
-+247​
-Số dòng đã thay đổi: 247 dòng được thêm vào và 0 dòng bị xóa.
-Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
-@@ -0,0 +1,247 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -50,7 +7,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        /* CSS GIAO DIỆN PHẲNG SIÊU ĐẸP, CHUẨN ĐỀU MÀN HÌNH */
+        /* CSS GIAO DIỆN PHẲNG CHUẨN ĐẸP */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -138,7 +95,7 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             margin-top: 10px;
         }
 
-        /* Nút chữ cái phẳng bo góc */
+        /* Nút chữ cái phẳng bo góc giống ảnh mẫu */
         .grid-container button {
             background: #29b6f6; /* Cột 4 mặc định: Xanh dương */
             color: white;
@@ -160,23 +117,20 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
             opacity: 0.9;
         }
 
-        /* ĐỔI MÀU THEO CỘT CHUẨN ĐẸP */
-        /* Cột 1 (Đỏ cam) */
+        /* ĐỔI MÀU THEO CỘT ĐÚNG THEO ẢNH */
+        /* Cột 1: Đỏ cam */
         .grid-container button:nth-child(4n+1) { 
             background: #f25a5a; 
         }
-        /* Cột 2 (Xanh lá) */
+        /* Cột 2: Xanh lá */
         .grid-container button:nth-child(4n+2) { 
             background: #2ecc71; 
         }
-        /* Cột 3 (Vàng cam) */
+        /* Cột 3: Vàng cam */
         .grid-container button:nth-child(4n+3) { 
             background: #f3a623; 
         }
     </style>
-
-    <!-- Thư viện âm thanh bất tử của ResponsiveVoice -->
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=9E3A5JbA"></script>
 </head>
 <body>
     <div class="container">
@@ -199,15 +153,15 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // Cách phiên âm chuẩn giúp giọng miền Nam của thư viện đọc cực kỳ tự nhiên
+    // ĐÃ BỎ CHỮ "CHỮ" - Đọc thẳng âm đánh vần siêu mượt
     const phienAmTiengViet = {
-        'A': 'Chữ a', 'Ă': 'Chữ á', 'Â': 'Chữ ớ', 'B': 'Chữ bờ', 'C': 'Chữ cờ', 'D': 'Chữ dờ', 'Đ': 'Chữ đờ',
-        'E': 'Chữ e', 'Ê': 'Chữ ê', 'G': 'Chữ gờ', 'H': 'Chữ hờ', 'I': 'Chữ i', 'K': 'Chữ ca', 'L': 'Chữ lờ',
-        'M': 'Chữ mờ', 'N': 'Chữ nờ', 'O': 'Chữ o', 'Ô': 'Chữ ô', 'Ơ': 'Chữ ơ', 'P': 'Chữ pờ', 'Q': 'Chữ quờ',
-        'R': 'Chữ rờ', 'S': 'Chữ sờ', 'T': 'Chữ tờ', 'U': 'Chữ u', 'Ư': 'Chữ ư', 'V': 'Chữ vờ', 'X': 'Chữ xờ', 'Y': 'Chữ i dài'
+        'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
+        'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
+        'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
+        'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
     };
 
-    // 2. Danh sách chữ cái Tiếng Anh chuẩn (26 chữ)
+    // 2. Danh sách chữ cái Tiếng Anh (26 chữ)
     const chuCaiTiengAnh = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     const phienAmTiengAnh = {
         'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch', 
@@ -216,7 +170,9 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
-    // Hàm tự động tạo bảng chữ cái khi đổi ngôn ngữ
+    let amThanhHienTai = null;
+
+    // Hàm tạo các nút chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
@@ -237,40 +193,39 @@ Số dòng tệp gốc	Số dòng khác biệt	Thay đổi dòng khác biệt
         });
     }
 
-    // HÀM PHÁT ÂM HOÀN HẢO - KHÔNG CÒN LỖI CORS, KHÔNG SỢ BỊ CÂM CHỮ
+    // HÀM PHÁT ÂM CHUẨN GIỌNG NỮ GOOGLE 100% KHÔNG LỌT GIỌNG NAM
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
+        let langCode = "";
 
         if (ngonNgu === 'vi') {
-            textDoc = phienAmTiengViet[chuCai] || `Chữ ${chuCai}`;
-            // Phát giọng nữ miền Nam cực ngọt ngào và rõ chữ
-            if (typeof responsiveVoice !== 'undefined') {
-                responsiveVoice.cancel(); // Tắt âm thanh cũ ngay lập tức nếu bấm nhanh
-                responsiveVoice.speak(textDoc, "Vietnamese Female", {rate: 0.95});
-            }
+            textDoc = phienAmTiengViet[chuCai] || chuCai;
+            langCode = "vi";
         } else {
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
-            // Phát giọng nữ Anh chuẩn
-            if (typeof responsiveVoice !== 'undefined') {
-                responsiveVoice.cancel();
-                responsiveVoice.speak(textDoc, "US English Female", {rate: 0.95});
-            }
+            langCode = "en";
         }
+
+        // Tắt âm thanh cũ ngay lập tức nếu bấm liên tục
+        if (amThanhHienTai) {
+            amThanhHienTai.pause();
+            amThanhHienTai.currentTime = 0;
+        }
+
+        // Lấy link âm thanh từ Google Translate (Cam kết 100% giọng nữ)
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
+        
+        amThanhHienTai = new Audio(audioUrl);
+        amThanhHienTai.play().catch(err => {
+            console.log("Trình duyệt chặn phát tự động");
+        });
     }
 
-    // Chạy bảng chữ cái Tiếng Việt ngay khi mở trang
+    // Tự động chạy khi tải xong trang
     window.onload = () => {
         doiNgonNgu();
     };
 </script>
 </body>
 </html>
-0 bình luận về commit
-Bình luận
-0
- ( 0 )
-
-Bình luận
-Bạn không nhận được thông báo từ chủ đề này.
-
