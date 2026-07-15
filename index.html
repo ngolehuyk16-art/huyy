@@ -270,7 +270,7 @@
             audio.play().then(() => {
                 return; // Đã chạy bằng giọng chị Google thành công!
             }).catch(err => {
-                // Nếu bị chặn thì chạy phương án dự phòng cuối cùng
+                // Nếu bị chặn trên Github Pages, tự động nhảy xuống bộ đọc hệ thống đã được lọc sạch giọng nam
                 chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu);
             });
         } catch (err) {
@@ -278,7 +278,7 @@
         }
     }
 
-    // PHƯƠNG ÁN DỰ PHÒNG CUỐI CÙNG: Chỉ dùng khi mất mạng internet (Lọc gắt gao loại bỏ giọng Nam)
+    // PHƯƠNG ÁN DỰ PHÒNG CUỐI CÙNG: ĐÃ ĐƯỢC LỌC GẮT GAO ĐỂ DIỆT GIỌNG NAM TRÊN MÁY TÍNH
     function chaySpeechSynthesisHeThong(textDoc, targetLang, ngonNgu) {
         if (!window.speechSynthesis) return;
         try {
@@ -292,17 +292,28 @@
             let chosenVoice = null;
             if (ngonNgu === 'vi') {
                 let viVoices = danhSachGiongNoi.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
-                // Lọc bỏ tất cả giọng nam
-               let viFemale = viVoices.filter(v => {
-    const name = v.name.toLowerCase();
-    // Lọc bỏ triệt để các giọng có chữ "nam", "minh", "male", "guy", "man"
-    return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
-});
-// Ưu tiên tìm các giọng nữ phổ biến: HoaiMy (máy tính), Google, An, Linh
-chosenVoice = viFemale.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || viFemale[0] || viVoices[0];
+                
+                // LỌC TRIỆT ĐỂ: Loại bỏ tất cả giọng có chứa chữ 'nam', 'minh', 'male', 'man', 'guy'
+                let viFemale = viVoices.filter(v => {
+                    const name = v.name.toLowerCase();
+                    return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
+                });
+                
+                // Ưu tiên tìm giọng nữ Microsoft HoaiMy (trên Windows) hoặc giọng nữ của Google/Apple
+                chosenVoice = viFemale.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || viFemale[0];
+                
+                // Nếu không tìm thấy bất kỳ giọng Nữ tiếng Việt nào khác (chỉ còn mỗi ông NamMinh), thà đọc bằng giọng Nữ tiếng Anh còn hơn cho giọng nam đọc!
+                if (!chosenVoice) {
+                    let enFemaleVoices = danhSachGiongNoi.filter(v => {
+                        const name = v.name.toLowerCase();
+                        return v.lang.toLowerCase().includes('en') && !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
+                    });
+                    chosenVoice = enFemaleVoices.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || enFemaleVoices[0];
+                    speech.lang = 'en-US'; // Chuyển mã ngôn ngữ sang tiếng Anh tạm thời
+                }
             } else {
                 let enVoices = danhSachGiongNoi.filter(v => v.lang.toLowerCase().includes('en'));
-                // Lọc bỏ tất cả giọng nam
+                // Lọc bỏ tất cả giọng nam tiếng Anh
                 let enFemale = enVoices.filter(v => {
                     const name = v.name.toLowerCase();
                     return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
