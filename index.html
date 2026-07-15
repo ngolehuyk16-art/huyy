@@ -176,11 +176,13 @@
 <script>
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
+    
+    // Mẹo "đánh vần" thông minh giúp máy tính Windows/điện thoại đọc chuẩn 100% không bị câm chữ nào
     const phienAmTiengViet = {
-        'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
-        'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
-        'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
-        'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
+        'A': 'Chữ a', 'Ă': 'Chữ á', 'Â': 'Chữ ớ', 'B': 'Chữ bờ', 'C': 'Chữ cờ', 'D': 'Chữ dờ', 'Đ': 'Chữ đờ',
+        'E': 'Chữ e', 'Ê': 'Chữ ê', 'G': 'Chữ gờ', 'H': 'Chữ hờ', 'I': 'Chữ i', 'K': 'Chữ ca', 'L': 'Chữ lờ',
+        'M': 'Chữ mờ', 'N': 'Chữ nờ', 'O': 'Chữ o', 'Ô': 'Chữ ô', 'Ơ': 'Chữ ơ', 'P': 'Chữ pờ', 'Q': 'Chữ quờ',
+        'R': 'Chữ rờ', 'S': 'Chữ sờ', 'T': 'Chữ tờ', 'U': 'Chữ u', 'Ư': 'Chữ ư', 'V': 'Chữ vờ', 'X': 'Chữ xờ', 'Y': 'Chữ i dài'
     };
 
     // 2. Danh sách chữ cái Tiếng Anh chuẩn (26 chữ)
@@ -192,14 +194,24 @@
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
-    let audioHienTai = null;
+    let giongHeThong = [];
 
-    // Hàm tự động đổi bảng chữ cái khi đổi ngôn ngữ
+    function khoiTaoGiongNoi() {
+        if (typeof speechSynthesis !== 'undefined') {
+            giongHeThong = window.speechSynthesis.getVoices();
+        }
+    }
+    khoiTaoGiongNoi();
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = khoiTaoGiongNoi;
+    }
+
+    // Hàm đổi bảng chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
         const title = document.getElementById('mainTitle');
-        grid.innerHTML = ""; // Xóa bảng chữ cái cũ
+        grid.innerHTML = "";
 
         let danhSachChu = [];
         if (ngonNgu === 'vi') {
@@ -210,7 +222,6 @@
             danhSachChu = chuCaiTiengAnh;
         }
 
-        // Tạo lại các nút chữ cái mới cực đẹp
         danhSachChu.forEach(chu => {
             const btn = document.createElement('button');
             btn.innerText = chu;
@@ -224,47 +235,70 @@
         let textDoc = "";
 
         if (ngonNgu === 'vi') {
-            textDoc = phienAmTiengViet[chuCai] || chuCai;
+            textDoc = phienAmTiengViet[chuCai] || `Chữ ${chuCai}`;
         } else {
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
         }
 
-        // Tắt âm thanh cũ ngay lập tức tránh đè tiếng
-        if (audioHienTai) {
-            audioHienTai.pause();
-            audioHienTai.currentTime = 0;
+        // Tắt toàn bộ âm thanh đang phát trước đó dứt điểm
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
         }
 
-        let audioUrl = "";
+        if (window.speechSynthesis) {
+            try {
+                let speech = new SpeechSynthesisUtterance();
+                speech.text = textDoc;
+                speech.rate = 0.8; // Cho đọc chậm lại một chút cho bé dễ nghe
 
-        if (ngonNgu === 'vi') {
-            // SỬ DỤNG API TEXT-TO-SPEECH GIỌNG NỮ VIỆT NAM (MIỀN NAM CỰC NGỌT, CHẠY CHUẨN TRÊN GITHUB PAGES KHÔNG BỊ CORS)
-            audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-            
-            // Nếu link google gốc bị github block, dùng proxy tts free miễn phí để lách luật bảo mật:
-            let proxyUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${textDoc}`; 
-            // Ở đây tôi dùng link TTS thay thế có tích hợp sẵn HTTPS sạch 100% để bypass GitHub bảo mật:
-            audioUrl = `https://tts.cyberspace.vn/api/v1/tts?text=${encodeURIComponent(textDoc)}&voice=female&speed=1`;
-        } else {
-            // Tiếng Anh giọng Nữ US chuẩn
-            audioUrl = `https://tts.cyberspace.vn/api/v1/tts?text=${encodeURIComponent(textDoc)}&voice=female_us&speed=1`;
-        }
+                if (giongHeThong.length === 0) khoiTaoGiongNoi();
 
-        // Chạy thử với API mới, nếu lỗi thì nhảy về link TTS dự phòng
-        try {
-            audioHienTai = new Audio(audioUrl);
-            audioHienTai.play().catch(err => {
-                // Nếu API bị quá tải hoặc lỗi, sẽ dùng một server TTS công cộng khác (vẫn cam kết GIỌNG NỮ):
-                let fallbackUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(textDoc)}&le=${ngonNgu === 'vi' ? 'vi' : 'eng'}`;
-                audioHienTai = new Audio(fallbackUrl);
-                audioHienTai.play().catch(e => console.log("Lỗi âm thanh"));
-            });
-        } catch (err) {
-            console.log("Không thể phát âm thanh");
+                let chosenVoice = null;
+
+                if (ngonNgu === 'vi') {
+                    speech.lang = "vi-VN";
+                    let danhSachViet = giongHeThong.filter(v => v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn'));
+                    
+                    // LỌC SẠCH SẼ GIỌNG NAM
+                    let giongNuViet = danhSachViet.filter(v => {
+                        const name = v.name.toLowerCase();
+                        return !name.includes('male') && !name.includes('nam') && !name.includes('minh') && !name.includes('guy') && !name.includes('man');
+                    });
+
+                    // Ưu tiên tìm giọng nữ (HoaiMy trên Windows, Google, An, Linh...)
+                    chosenVoice = giongNuViet.find(v => v.name.toLowerCase().includes('hoaimy') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('linh')) || giongNuViet[0];
+
+                    // TRƯỜNG HỢP DỰ PHÒNG: Nếu máy tính không có giọng nữ Việt nào, dùng tạm giọng nữ Anh để không bị câm
+                    if (!chosenVoice) {
+                        let giongNuAnh = giongHeThong.filter(v => {
+                            const name = v.name.toLowerCase();
+                            return v.lang.toLowerCase().includes('en') && !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
+                        });
+                        chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0];
+                        speech.lang = 'en-US';
+                    }
+                } else {
+                    // Tiếng Anh
+                    speech.lang = "en-US";
+                    let danhSachAnh = giongHeThong.filter(v => v.lang.toLowerCase().includes('en'));
+                    let giongNuAnh = danhSachAnh.filter(v => {
+                        const name = v.name.toLowerCase();
+                        return !name.includes('male') && !name.includes('man') && !name.includes('david') && !name.includes('george') && !name.includes('mark');
+                    });
+                    chosenVoice = giongNuAnh.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female')) || giongNuAnh[0] || danhSachAnh[0];
+                }
+
+                if (chosenVoice) {
+                    speech.voice = chosenVoice;
+                }
+                
+                window.speechSynthesis.speak(speech);
+            } catch (e) {
+                console.log("Lỗi phát âm hệ thống");
+            }
         }
     }
 
-    // Tự động kích hoạt bảng chữ cái Tiếng Việt ngay khi mở trang
     window.onload = () => {
         doiNgonNgu();
     };
