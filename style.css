@@ -1,0 +1,143 @@
+/* ==========================================================================
+   THIẾT LẬP CHUNG & NỀN PASTEL
+   ========================================================================== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #ffe6c8, #f0d5ff);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    padding: 10px;
+}
+
+h1 {
+    color: #4a4a4a;
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+
+/* ==========================================================================
+   NÚT TẢI APP APK & THANH CHỌN NGÔN NGỮ
+   ========================================================================== */
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #ff823a, #bc84ee);
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 50px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(188, 132, 238, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 130, 58, 0.4);
+}
+
+.download-btn:active {
+    transform: translateY(1px);
+}
+
+/* Thanh chọn ngôn ngữ */
+.language-selector {
+    margin-bottom: 25px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px 18px;
+    border-radius: 30px;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.language-selector label {
+    color: #4a4a4a;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.language-selector select {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #bc84ee;
+    background-color: white;
+    color: #4a4a4a;
+    font-weight: bold;
+    outline: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.language-selector select:hover {
+    border-color: #ff823a;
+}
+
+/* ==========================================================================
+   BẢNG CHỮ CÁI (GRID SYSTEM 5 CỘT)
+   ========================================================================== */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+button {
+    background-color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+    aspect-ratio: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.1s, background-color 0.1s;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+    transform: scale(0.9);
+    background-color: #e6f7ff;
+}
+
+/* Tối ưu hóa màn hình điện thoại nhỏ */
+@media (max-width: 380px) {
+    .grid-container {
+        gap: 8px;
+    }
+    
+    button {
+        font-size: 18px;
+        border-radius: 10px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .download-btn {
+        font-size: 13px;
+        padding: 10px 18px;
+    }
+}

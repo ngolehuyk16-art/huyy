@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Chữ Cái ABC</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>BẢNG CHỮ CÁI</h1>
+
+        <a href="https://drive.google.com/file/d/1WzcqoEnkLBRWp2ui4BG4HmvnM939iS9F/view?usp=sharing" target="_blank" class="download-btn">
+            <i class="fa-solid fa-download"></i> Tải Ứng Dụng Cho Điện Thoại (File .APK)
+        </a>
+
+        <div class="language-selector">
+            <label for="langSelect"><b>Chọn Ngôn Ngữ Đọc:</b></label>
+            <select id="langSelect">
+                <option value="vi" selected>Tiếng Việt (Đánh vần chuẩn)</option>
+                <option value="en">Tiếng Anh (English)</option>
+            </select>
+        </div>
+
+        <div class="grid-container">
+            <button onclick="phatAm('A')">A</button>
+            <button onclick="phatAm('Ă')">Ă</button>
+            <button onclick="phatAm('Â')">Â</button>
+            <button onclick="phatAm('B')">B</button>
+            <button onclick="phatAm('C')">C</button>
+            <button onclick="phatAm('D')">D</button>
+            <button onclick="phatAm('Đ')">Đ</button>
+            <button onclick="phatAm('E')">E</button>
+            <button onclick="phatAm('Ê')">Ê</button>
+            <button onclick="phatAm('G')">G</button>
+            <button onclick="phatAm('H')">H</button>
+            <button onclick="phatAm('I')">I</button>
+            <button onclick="phatAm('K')">K</button>
+            <button onclick="phatAm('L')">L</button>
+            <button onclick="phatAm('M')">M</button>
+            <button onclick="phatAm('N')">N</button>
+            <button onclick="phatAm('O')">O</button>
+            <button onclick="phatAm('Ô')">Ô</button>
+            <button onclick="phatAm('Ơ')">Ơ</button>
+            <button onclick="phatAm('P')">P</button>
+            <button onclick="phatAm('Q')">Q</button>
+            <button onclick="phatAm('R')">R</button>
+            <button onclick="phatAm('S')">S</button>
+            <button onclick="phatAm('T')">T</button>
+            <button onclick="phatAm('U')">U</button>
+            <button onclick="phatAm('Ư')">Ư</button>
+            <button onclick="phatAm('V')">V</button>
+            <button onclick="phatAm('X')">X</button>
+            <button onclick="phatAm('Y')">Y</button>
+        </div>
+    </div>
+
+  <script>
+    function phatAm(chuCai) {
+        const ngonNgu = document.getElementById('langSelect').value;
+
+        // 1. Bản đồ phát âm Tiếng Việt (Đánh vần chuẩn sư phạm tiểu học)
+        const phienAmTiengViet = {
+            'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
+            'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
+            'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
+            'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
+        };
+
+        // 2. Bản đồ phát âm Tiếng Anh (Đánh vần chữ cái đơn tiếng Anh)
+        const phienAmTiengAnh = {
+            'A': 'ay', 'Ă': 'a', 'Â': 'a', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
+            'E': 'ee', 'Ê': 'ee', 'G': 'jee', 'H': 'aitch', 'I': 'eye', 'K': 'kay', 'L': 'el',
+            'M': 'em', 'N': 'en', 'O': 'oh', 'Ô': 'oh', 'Ơ': 'er', 'P': 'pee', 'Q': 'cue',
+            'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'u', 'V': 'vee', 'X': 'ex', 'Y': 'why'
+        };
+
+        let textDoc = chuCai;
+        let targetLang = "vi-VN";
+
+        if (ngonNgu === 'vi') {
+            textDoc = phienAmTiengViet[chuCai] || chuCai;
+            targetLang = "vi-VN";
+        } else {
+            textDoc = phienAmTiengAnh[chuCai] || chuCai;
+            targetLang = "en-US";
+        }
+
+        // Tắt các giọng đang phát dở để tránh đè âm thanh
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+
+        // --- PHƯƠNG ÁN 1: Sử dụng Google TTS API Trực Tuyến (Giọng Nữ cực chuẩn và cực mượt) ---
+        let locale = (ngonNgu === 'vi') ? 'vi' : 'en';
+        let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${locale}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
+        
+        let audio = new Audio(audioUrl);
+        audio.play().then(() => {
+            console.log("Phát âm thành công qua API trực tuyến.");
+        }).catch(function(error) {
+            // --- PHƯƠNG ÁN 2 (DỰ PHÒNG): Nếu API bị lỗi hoặc mất mạng, sử dụng SpeechSynthesis của máy ---
+            console.log("Đang sử dụng giọng đọc dự phòng hệ thống...");
+            let speech = new SpeechSynthesisUtterance();
+            speech.text = textDoc;
+            speech.lang = targetLang;
+            speech.rate = 0.85; // Tốc độ đọc vừa phải cho bé
+
+            let voices = window.speechSynthesis.getVoices();
+            let chosenVoice = null;
+
+            if (ngonNgu === 'vi') {
+                // Lọc kỹ các giọng tiếng Việt có hỗ trợ trên thiết bị (ưu tiên giọng Nữ)
+                chosenVoice = voices.find(voice => {
+                    const name = voice.name.toLowerCase();
+                    return (voice.lang.includes('vi') || voice.lang.includes('VN')) && 
+                           (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female'));
+                });
+                
+                // Nếu không tìm thấy giọng Việt cụ thể, lấy giọng Tiếng Việt bất kỳ có sẵn
+                if (!chosenVoice) {
+                    chosenVoice = voices.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
+                }
+            } else {
+                // Tìm các giọng nữ tiếng Anh phổ biến
+                chosenVoice = voices.find(voice => {
+                    const name = voice.name.toLowerCase();
+                    return voice.lang.includes('en') && 
+                           (name.includes('zira') || name.includes('samantha') || name.includes('karen') || name.includes('female') || name.includes('google us english'));
+                });
+            }
+
+            // Gán giọng đọc phù hợp nhất
+            if (chosenVoice) {
+                speech.voice = chosenVoice;
+            }
+
+            window.speechSynthesis.speak(speech);
+        });
+    }
+
+    // Nạp sẵn giọng nói hệ thống để giảm thiểu độ trễ
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+</script>
+</body>
+</html>
