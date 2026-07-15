@@ -56,7 +56,7 @@
         </div>
     </div>
 
-  <script>
+<script>
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
 
@@ -70,60 +70,60 @@
 
         // 2. Bản đồ phát âm Tiếng Anh (Đánh vần chữ cái đơn tiếng Anh)
         const phienAmTiengAnh = {
-            'A': 'ay', 'Ă': 'a', 'Â': 'a', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
+            'A': 'ay', 'Ă': 'ay', 'Â': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
             'E': 'ee', 'Ê': 'ee', 'G': 'jee', 'H': 'aitch', 'I': 'eye', 'K': 'kay', 'L': 'el',
             'M': 'em', 'N': 'en', 'O': 'oh', 'Ô': 'oh', 'Ơ': 'er', 'P': 'pee', 'Q': 'cue',
-            'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'u', 'V': 'vee', 'X': 'ex', 'Y': 'why'
+            'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'you', 'V': 'vee', 'X': 'ex', 'Y': 'why'
         };
 
-        let textDoc = chuCai;
-        let targetLang = "vi-VN";
+        let textDoc = "";
+        let langCode = ""; // Dành cho Google TTS API
+        let targetLang = ""; // Dành cho SpeechSynthesis hệ thống
 
         if (ngonNgu === 'vi') {
             textDoc = phienAmTiengViet[chuCai] || chuCai;
+            langCode = "vi";
             targetLang = "vi-VN";
         } else {
             textDoc = phienAmTiengAnh[chuCai] || chuCai;
+            langCode = "en";
             targetLang = "en-US";
         }
 
-        // Tắt các giọng đang phát dở để tránh đè âm thanh
+        // Tắt tất cả các giọng đang phát dở tránh đè âm thanh
         if (window.speechSynthesis) {
             window.speechSynthesis.cancel();
         }
 
-        // --- PHƯƠNG ÁN 1: Sử dụng Google TTS API Trực Tuyến (Giọng Nữ cực chuẩn và cực mượt) ---
-        let locale = (ngonNgu === 'vi') ? 'vi' : 'en';
-        let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${locale}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-        
+        // --- PHƯƠNG ÁN 1: Sử dụng Google TTS API Trực Tuyến (Giọng Nữ chuẩn & mượt) ---
+        let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
         let audio = new Audio(audioUrl);
+        
         audio.play().then(() => {
-            console.log("Phát âm thành công qua API trực tuyến.");
+            console.log("Phát âm trực tuyến thành công: " + textDoc);
         }).catch(function(error) {
-            // --- PHƯƠNG ÁN 2 (DỰ PHÒNG): Nếu API bị lỗi hoặc mất mạng, sử dụng SpeechSynthesis của máy ---
-            console.log("Đang sử dụng giọng đọc dự phòng hệ thống...");
+            // --- PHƯƠNG ÁN 2 (DỰ PHÒNG): Nếu API lỗi hoặc offline, dùng SpeechSynthesis của máy ---
+            console.log("Đang sử dụng giọng đọc dự phòng...");
             let speech = new SpeechSynthesisUtterance();
             speech.text = textDoc;
             speech.lang = targetLang;
-            speech.rate = 0.85; // Tốc độ đọc vừa phải cho bé
+            speech.rate = 0.85;
 
             let voices = window.speechSynthesis.getVoices();
             let chosenVoice = null;
 
             if (ngonNgu === 'vi') {
-                // Lọc kỹ các giọng tiếng Việt có hỗ trợ trên thiết bị (ưu tiên giọng Nữ)
+                // Ưu tiên giọng nữ Việt
                 chosenVoice = voices.find(voice => {
                     const name = voice.name.toLowerCase();
                     return (voice.lang.includes('vi') || voice.lang.includes('VN')) && 
                            (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female'));
                 });
-                
-                // Nếu không tìm thấy giọng Việt cụ thể, lấy giọng Tiếng Việt bất kỳ có sẵn
                 if (!chosenVoice) {
                     chosenVoice = voices.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
                 }
             } else {
-                // Tìm các giọng nữ tiếng Anh phổ biến
+                // Ưu tiên giọng nữ Anh
                 chosenVoice = voices.find(voice => {
                     const name = voice.name.toLowerCase();
                     return voice.lang.includes('en') && 
@@ -131,7 +131,6 @@
                 });
             }
 
-            // Gán giọng đọc phù hợp nhất
             if (chosenVoice) {
                 speech.voice = chosenVoice;
             }
@@ -140,7 +139,7 @@
         });
     }
 
-    // Nạp sẵn giọng nói hệ thống để giảm thiểu độ trễ
+    // Load trước danh sách giọng nói
     if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
