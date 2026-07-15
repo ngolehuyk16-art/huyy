@@ -6,8 +6,8 @@
     <title>Học Chữ Cái ABC</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Nhúng thư viện đọc giọng nói ResponsiveVoice cực kỳ ổn định -->
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=87g92X93"></script>
+    <!-- Nhúng thư viện giọng nói (Có thêm thuộc tính defer để tránh nghẽn trang) -->
+    <script defer src="https://code.responsivevoice.org/responsivevoice.js?key=87g92X93"></script>
 </head>
 <body>
     <div class="container">
@@ -59,7 +59,7 @@
     </div>
 
 <script>
-    // Bản đồ phát âm Tiếng Việt (Đánh vần chuẩn mẫu giáo)
+    // Bản đồ phát âm Tiếng Việt
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -75,22 +75,109 @@
         'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'you', 'V': 'vee', 'X': 'ex', 'Y': 'why'
     };
 
+    let danhSachGiongNoi = [];
+    function loadVoices() {
+        if (typeof speechSynthesis !== 'undefined') {
+            danhSachGiongNoi = window.speechSynthesis.getVoices();
+        }
+    }
+    loadVoices();
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
-        
-        // Dừng mọi âm thanh đang phát dở trước khi đọc âm mới
-        if (window.responsiveVoice) {
-            window.responsiveVoice.cancel();
-        }
+        let textDoc = "";
+        let langCode = ""; 
+        let targetLang = ""; 
 
         if (ngonNgu === 'vi') {
-            const textDoc = phienAmTiengViet[chuCai] || chuCai;
-            // Sử dụng giọng nữ Tiếng Việt cực chuẩn của ResponsiveVoice
-            responsiveVoice.speak(textDoc, "Vietnamese Female", { rate: 0.85 });
+            textDoc = phienAmTiengViet[chuCai] || chuCai;
+            langCode = "vi";
+            targetLang = "vi-VN";
         } else {
-            const textDoc = phienAmTiengAnh[chuCai] || chuCai;
-            // Sử dụng giọng nữ Tiếng Anh cực chuẩn
-            responsiveVoice.speak(textDoc, "US English Female", { rate: 0.85 });
+            textDoc = phienAmTiengAnh[chuCai] || chuCai;
+            langCode = "en";
+            targetLang = "en-US";
+        }
+
+        // 1. Tắt tất cả âm thanh cũ (Tránh đè tiếng)
+        try {
+            if (window.responsiveVoice) {
+                window.responsiveVoice.cancel();
+            }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        } catch (e) {
+            console.log("Không thể tắt âm thanh cũ");
+        }
+
+        // 2. PHƯƠNG ÁN 1: Thử dùng ResponsiveVoice (Giọng nữ cực chuẩn)
+        if (window.responsiveVoice && typeof window.responsiveVoice.speak === 'function') {
+            try {
+                if (ngonNgu === 'vi') {
+                    window.responsiveVoice.speak(textDoc, "Vietnamese Female", { rate: 0.85 });
+                } else {
+                    window.responsiveVoice.speak(textDoc, "US English Female", { rate: 0.85 });
+                }
+                return; // Đã phát thành công, thoát hàm
+            } catch (err) {
+                console.log("ResponsiveVoice bị lỗi, chuyển sang phương án dự phòng.");
+            }
+        }
+
+        // 3. PHƯƠNG ÁN DỰ PHÒNG 2: Sử dụng SpeechSynthesis hệ thống của điện thoại (Không lo lỗi)
+        if (window.speechSynthesis) {
+            try {
+                let speech = new SpeechSynthesisUtterance();
+                speech.text = textDoc;
+                speech.lang = targetLang;
+                speech.rate = 0.85;
+
+                if (danhSachGiongNoi.length === 0) {
+                    loadVoices();
+                }
+
+                let chosenVoice = null;
+                if (ngonNgu === 'vi') {
+                    chosenVoice = danhSachGiongNoi.find(voice => {
+                        const name = voice.name.toLowerCase();
+                        return (voice.lang.includes('vi') || voice.lang.includes('VN')) && 
+                               (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female') || name.includes('woman'));
+                    });
+                    if (!chosenVoice) {
+                        chosenVoice = danhSachGiongNoi.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
+                    }
+                } else {
+                    chosenVoice = danhSachGiongNoi.find(voice => {
+                        const name = voice.name.toLowerCase();
+                        return (voice.lang.toLowerCase().includes('en')) && 
+                               (name.includes('zira') || name.includes('samantha') || name.includes('karen') || name.includes('female') || name.includes('woman'));
+                    });
+                    if (!chosenVoice) {
+                        chosenVoice = danhSachGiongNoi.find(voice => voice.lang.toLowerCase().includes('en'));
+                    }
+                }
+
+                if (chosenVoice) {
+                    speech.voice = chosenVoice;
+                }
+                window.speechSynthesis.speak(speech);
+                return; // Đã phát thành công, thoát hàm
+            } catch (err) {
+                console.log("SpeechSynthesis hệ thống bị lỗi.");
+            }
+        }
+
+        // 4. PHƯƠNG ÁN DỰ PHÒNG CUỐI CÙNG: Phát trực tuyến qua Google API
+        try {
+            let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
+            let audio = new Audio(audioUrl);
+            audio.play().catch(err => console.log("Google TTS bị chặn."));
+        } catch (err) {
+            console.log("Tất cả các phương thức phát âm đều thất bại.");
         }
     }
 </script>
