@@ -6,6 +6,8 @@
     <title>Học Chữ Cái ABC</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Nhúng thư viện đọc giọng nói ResponsiveVoice cực kỳ ổn định -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=87g92X93"></script>
 </head>
 <body>
     <div class="container">
@@ -57,7 +59,7 @@
     </div>
 
 <script>
-    // 1. Bản đồ phát âm Tiếng Việt (Đánh vần chuẩn mẫu giáo)
+    // Bản đồ phát âm Tiếng Việt (Đánh vần chuẩn mẫu giáo)
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -65,7 +67,7 @@
         'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
     };
 
-    // 2. Bản đồ phát âm Tiếng Anh
+    // Bản đồ phát âm Tiếng Anh
     const phienAmTiengAnh = {
         'A': 'ay', 'Ă': 'ay', 'Â': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'Đ': 'dee',
         'E': 'ee', 'Ê': 'ee', 'G': 'jee', 'H': 'aitch', 'I': 'eye', 'K': 'kay', 'L': 'el',
@@ -73,105 +75,22 @@
         'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'Ư': 'you', 'V': 'vee', 'X': 'ex', 'Y': 'why'
     };
 
-    let danhSachGiongNoi = [];
-    function loadVoices() {
-        if (typeof speechSynthesis !== 'undefined') {
-            danhSachGiongNoi = window.speechSynthesis.getVoices();
-        }
-    }
-    loadVoices();
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    // Hàm gọi phát âm trực tiếp từ Google API (luôn chạy mượt giọng nữ)
-    function phatOnline(text, lang) {
-        let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(text)}`;
-        let audio = new Audio(audioUrl);
-        audio.play().catch(err => console.log("Lỗi phát âm trực tuyến."));
-    }
-
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
-        let textDoc = "";
-        let langCode = ""; 
-        let targetLang = ""; 
+        
+        // Dừng mọi âm thanh đang phát dở trước khi đọc âm mới
+        if (window.responsiveVoice) {
+            window.responsiveVoice.cancel();
+        }
 
         if (ngonNgu === 'vi') {
-            textDoc = phienAmTiengViet[chuCai] || chuCai;
-            langCode = "vi";
-            targetLang = "vi-VN";
+            const textDoc = phienAmTiengViet[chuCai] || chuCai;
+            // Sử dụng giọng nữ Tiếng Việt cực chuẩn của ResponsiveVoice
+            responsiveVoice.speak(textDoc, "Vietnamese Female", { rate: 0.85 });
         } else {
-            textDoc = phienAmTiengAnh[chuCai] || chuCai;
-            langCode = "en";
-            targetLang = "en-US";
-        }
-
-        // Tắt các âm thanh cũ đang phát dở
-        if (window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-        }
-
-        // --- NẾU CHỌN TIẾNG VIỆT ---
-        if (ngonNgu === 'vi') {
-            if (danhSachGiongNoi.length === 0) loadVoices();
-            
-            // Tìm xem máy của bạn thực sự có hỗ trợ giọng đọc Tiếng Việt hay không
-            let coGiongViet = danhSachGiongNoi.some(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
-
-            if (coGiongViet && window.speechSynthesis) {
-                // Nếu máy có sẵn, sử dụng SpeechSynthesis hệ thống
-                let speech = new SpeechSynthesisUtterance();
-                speech.text = textDoc;
-                speech.lang = targetLang;
-                speech.rate = 0.85;
-
-                let chosenVoice = danhSachGiongNoi.find(voice => {
-                    const name = voice.name.toLowerCase();
-                    return (voice.lang.includes('vi') || voice.lang.includes('VN')) && 
-                           (name.includes('hoài an') || name.includes('an') || name.includes('linh') || name.includes('lan') || name.includes('female') || name.includes('woman'));
-                });
-
-                if (!chosenVoice) {
-                    chosenVoice = danhSachGiongNoi.find(voice => voice.lang.includes('vi') || voice.lang.includes('VN'));
-                }
-
-                if (chosenVoice) speech.voice = chosenVoice;
-                window.speechSynthesis.speak(speech);
-            } else {
-                // Nếu máy không có sẵn giọng Việt, dùng NGAY Google TTS để chắc chắn có giọng nữ đọc chuẩn
-                phatOnline(textDoc, 'vi');
-            }
-        } 
-        // --- NẾU CHỌN TIẾNG ANH ---
-        else {
-            if (window.speechSynthesis) {
-                let speech = new SpeechSynthesisUtterance();
-                speech.text = textDoc;
-                speech.lang = targetLang;
-                speech.rate = 0.85;
-
-                if (danhSachGiongNoi.length === 0) loadVoices();
-
-                let chosenVoice = danhSachGiongNoi.find(voice => {
-                    const name = voice.name.toLowerCase();
-                    return (voice.lang.toLowerCase().includes('en')) && 
-                           (name.includes('zira') || name.includes('samantha') || name.includes('karen') || name.includes('female') || name.includes('woman') || name.includes('google us english'));
-                });
-
-                if (!chosenVoice) {
-                    chosenVoice = danhSachGiongNoi.find(voice => voice.lang.toLowerCase().includes('en'));
-                }
-
-                if (chosenVoice) {
-                    speech.voice = chosenVoice;
-                    window.speechSynthesis.speak(speech);
-                } else {
-                    phatOnline(textDoc, 'en');
-                }
-            } else {
-                phatOnline(textDoc, 'en');
-            }
+            const textDoc = phienAmTiengAnh[chuCai] || chuCai;
+            // Sử dụng giọng nữ Tiếng Anh cực chuẩn
+            responsiveVoice.speak(textDoc, "US English Female", { rate: 0.85 });
         }
     }
 </script>
