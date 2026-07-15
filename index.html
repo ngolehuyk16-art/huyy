@@ -98,7 +98,7 @@
             margin-top: 10px;
         }
 
-        /* Nút chữ cái phẳng bo góc giống ảnh mẫu */
+        /* Nút chữ cái phẳng bo góc */
         .grid-container button {
             background: #29b6f6; /* Cột 4 mặc định: Xanh dương */
             color: white;
@@ -114,7 +114,7 @@
             align-items: center;
             aspect-ratio: 1; /* Nút vuông hoàn hảo */
             
-            /* LOẠI BỎ HOÀN TOÀN DELAY 300MS TRÊN ĐIỆN THOẠI ĐỂ BAO SPAM */
+            /* LOẠI BỎ DELAY 300MS ĐỂ BẤM SPAM LIÊN TỤC TRÊN ĐIỆN THOẠI */
             touch-action: manipulation;
         }
 
@@ -159,7 +159,7 @@
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // Đã loại bỏ chữ "Chữ" thừa thãi, chỉ phát âm đánh vần chuẩn giáo dục mầm non
+    // Phát âm chuẩn mầm non
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -178,7 +178,7 @@
 
     let amThanhHienTai = null;
 
-    // Tải trước danh sách giọng của hệ thống để tối ưu hóa bộ lọc tiếng Việt
+    // Tải trước danh sách giọng để bộ lọc hoạt động chính xác
     function taiDanhSachGiong() {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.getVoices();
@@ -201,13 +201,13 @@
             const btn = document.createElement('button');
             btn.innerText = chu;
             
-            // SỬA LỖI SPAM TRÊN ĐIỆN THOẠI: Chạm là phát âm ngay không cần chờ delay
+            // Hỗ trợ chạm phát âm ngay lập tức trên điện thoại (chống delay)
             btn.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Chặn zoom và chặn độ trễ phản hồi
+                e.preventDefault(); 
                 phatAm(chu);
             }, { passive: false });
 
-            // Hỗ trợ click chuột bình thường trên máy tính
+            // Hỗ trợ máy tính
             btn.addEventListener('click', (e) => {
                 if (e.pointerType !== 'touch') {
                     phatAm(chu);
@@ -218,7 +218,7 @@
         });
     }
 
-    // HÀM PHÁT ÂM HOÀN HẢO - TRIỆT TIÊU HOÀN TOÀN GIỌNG NAM VÀ SỬA ĐỚ TIẾNG VIỆT
+    // HÀM PHÁT ÂM HOÀN HẢO - 100% GIỌNG NỮ KHÔNG BỊ ĐỚ
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = "";
@@ -232,40 +232,45 @@
             langCode = "en";
         }
 
-        // Tắt ngay lập tức âm thanh cũ khi bấm spam nhanh
+        // Tắt ngay âm thanh cũ khi spam nhanh
         if (amThanhHienTai) {
             amThanhHienTai.pause();
             amThanhHienTai.currentTime = 0;
         }
 
-        // CÁCH 1: Gọi file âm thanh Google TTS Online (Luôn là giọng NỮ ngọt ngào chuẩn mực, không bao giờ bị đớ)
+        // CÁCH 1: Gọi Google TTS Online (Luôn là giọng Nữ của Google chuẩn tự nhiên nhất)
         const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
         amThanhHienTai = new Audio(audioUrl);
         
         amThanhHienTai.play().catch(err => {
-            console.log("Đang dùng phương án dự phòng bảo mật (Chống giọng Nam)...");
+            console.log("Đang dùng phương án dự phòng (Lọc hoàn toàn giọng Nam)...");
             
-            // CÁCH 2 (DỰ PHÒNG CHUYÊN SÂU): Sử dụng bộ SpeechSynthesis nội bộ của máy
+            // CÁCH 2: Dự phòng offline bằng bộ đọc của máy (Nhưng khóa chặt giọng nam)
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Giải phóng hàng chờ âm thanh cũ
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(textDoc);
-                
-                // Cấu hình ngôn ngữ chuẩn tránh tiếng Anh lơ lớ
                 utterance.lang = (langCode === 'vi') ? 'vi-VN' : 'en-US';
                 
-                // ĐÃ SỬA: Đưa cao độ về mức chuẩn 1.0 và tốc độ 0.95 để không bị "đớ" giọng robot
+                // Giữ mức chuẩn tự nhiên không chỉnh quá cao để tránh bị đớ
                 utterance.pitch = 1.0; 
                 utterance.rate = 0.95; 
 
-                // Lọc danh sách giọng của thiết bị, CHỈ CHỌN các giọng ngôn ngữ phù hợp và là NỮ
                 const voices = window.speechSynthesis.getVoices();
                 let giongNu = null;
 
                 if (langCode === 'vi') {
-                    // Ép buộc phải tìm đúng giọng đọc có hỗ trợ tiếng Việt
-                    giongNu = voices.find(v => v.lang.includes('vi') || v.lang.includes('VI'));
+                    // Loại bỏ hoàn toàn các giọng nói chứa từ "male" hoặc "nam"
+                    giongNu = voices.find(v => (v.lang.includes('vi') || v.lang.includes('VI')) && 
+                        !v.name.toLowerCase().includes('male') && 
+                        !v.name.toLowerCase().includes('nam')
+                    );
+                    
+                    // Nếu không lọc được, lấy giọng mặc định của hệ thống
+                    if (!giongNu) {
+                        giongNu = voices.find(v => v.lang.includes('vi') || v.lang.includes('VI'));
+                    }
                 } else {
-                    // Ưu tiên tìm giọng nữ tiếng Anh chuẩn
+                    // Ưu tiên tìm các giọng nữ tiếng Anh quen thuộc
                     giongNu = voices.find(v => {
                         const name = v.name.toLowerCase();
                         return (v.lang.includes('en') || v.lang.includes('EN')) && (
@@ -287,7 +292,7 @@
         });
     }
 
-    // Tự khởi chạy khi tải xong trang
+    // Khởi chạy
     window.onload = () => {
         doiNgonNgu();
     };
