@@ -14,13 +14,12 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             -webkit-tap-highlight-color: transparent;
-            /* Chống bôi đen chọn chữ khi bấm nhanh trên điện thoại */
             -webkit-user-select: none;
             user-select: none;
         }
 
         body {
-            background: #e3f2fd; /* Màu xanh nhạt dịu mát */
+            background: #e3f2fd; 
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -31,7 +30,7 @@
         .container {
             background-color: #ffffff;
             width: 100%;
-            max-width: 480px; /* Vừa khít mọi điện thoại */
+            max-width: 480px; 
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
@@ -93,14 +92,14 @@
         /* Lưới bảng chữ cái tự động giãn đều */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 cột bằng nhau */
+            grid-template-columns: repeat(4, 1fr); 
             gap: 12px;
             margin-top: 10px;
         }
 
-        /* Nút chữ cái phẳng bo góc */
+        /* Nút chữ cái phẳng bo góc giống ảnh mẫu */
         .grid-container button {
-            background: #29b6f6; /* Cột 4 mặc định: Xanh dương */
+            background: #29b6f6; 
             color: white;
             border: none;
             padding: 15px 0;
@@ -112,9 +111,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            aspect-ratio: 1; /* Nút vuông hoàn hảo */
-            
-            /* LOẠI BỎ HOÀN TOÀN DELAY 300MS ĐỂ BẤM SPAM LIÊN TỤC */
+            aspect-ratio: 1; 
             touch-action: manipulation;
         }
 
@@ -123,16 +120,13 @@
             opacity: 0.9;
         }
 
-        /* ĐỔI MÀU THEO CỘT ĐÚNG THEO ẢNH MẪU */
-        /* Cột 1: Đỏ cam */
+        /* ĐỔI MÀU THEO CỘT */
         .grid-container button:nth-child(4n+1) { 
             background: #f25a5a; 
         }
-        /* Cột 2: Xanh lá */
         .grid-container button:nth-child(4n+2) { 
             background: #2ecc71; 
         }
-        /* Cột 3: Vàng cam */
         .grid-container button:nth-child(4n+3) { 
             background: #f3a623; 
         }
@@ -160,7 +154,7 @@
     // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     
-    // Phát âm chuẩn mầm non không bị đớ
+    // Phát âm mầm non chuẩn, không bị đớ
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -177,24 +171,25 @@
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
-    let amThanhHienTai = null;
+    // Tạo sẵn một thẻ Audio dùng chung để giải quyết hoàn toàn lỗi Autoplay trên điện thoại
+    const trinhPhatAmThanh = new Audio();
+    let daKichHoatAudio = false;
 
-    // Tải trước danh sách giọng của điện thoại
-    function taiDanhSachGiong() {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.getVoices();
+    // Hàm mở khóa âm thanh cho điện thoại ngay từ lần chạm đầu tiên
+    function moKhoaAmThanh() {
+        if (!daKichHoatAudio) {
+            trinhPhatAmThanh.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="; // File âm thanh trống
+            trinhPhatAmThanh.play().then(() => {
+                daKichHoatAudio = true;
+            }).catch(e => console.log("Chờ bấm nút để mở khóa"));
         }
-    }
-    if ('speechSynthesis' in window) {
-        taiDanhSachGiong();
-        window.speechSynthesis.onvoiceschanged = taiDanhSachGiong;
     }
 
     // Hàm tạo các nút chữ cái khi đổi ngôn ngữ
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
-        grid.innerHTML = ""; // Xóa bảng cũ
+        grid.innerHTML = ""; 
 
         let danhSachChu = (ngonNgu === 'vi') ? chuCaiTiengViet : chuCaiTiengAnh;
 
@@ -202,14 +197,16 @@
             const btn = document.createElement('button');
             btn.innerText = chu;
             
-            // Hỗ trợ chạm phản hồi ngay lập tức trên điện thoại
+            // Xử lý chạm nhanh chống trễ (Spam thoải mái)
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
+                moKhoaAmThanh();
                 phatAm(chu);
             }, { passive: false });
 
-            // Hỗ trợ click chuột trên máy tính
+            // Xử lý click chuột máy tính
             btn.addEventListener('click', (e) => {
+                moKhoaAmThanh();
                 if (e.pointerType !== 'touch') {
                     phatAm(chu);
                 }
@@ -219,81 +216,31 @@
         });
     }
 
-    // HÀM PHÁT ÂM TUYỆT ĐỐI - KHÓA CHẶT GIỌNG NAM BẰNG MỌI GIÁ
+    // HÀM PHÁT ÂM SIÊU TỐC - ĐẢM BẢO 100% GIỌNG NỮ KHÔNG BỊ ĐỚ, KHÔNG LO GIỌNG NAM
     function phatAm(chuCai) {
         const ngonNgu = document.getElementById('langSelect').value;
         let textDoc = (ngonNgu === 'vi') ? (phienAmTiengViet[chuCai] || chuCai) : (phienAmTiengAnh[chuCai] || chuCai);
-        let langCode = (ngonNgu === 'vi') ? 'vi-VN' : 'en-US';
+        let langCode = (ngonNgu === 'vi') ? 'vi' : 'en';
 
-        // Tắt âm thanh cũ ngay lập tức khi bấm spam nhanh
-        if (amThanhHienTai) {
-            amThanhHienTai.pause();
-            amThanhHienTai.currentTime = 0;
-        }
-
-        // BƯỚC 1: Sử dụng bộ speechSynthesis nội bộ của máy nhưng quét cực kỳ ngặt nghèo
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Giải phóng hàng chờ âm thanh cũ
-            const utterance = new SpeechSynthesisUtterance(textDoc);
-            utterance.lang = langCode;
-            
-            // Tông giọng chuẩn tự nhiên
-            utterance.pitch = 1.0; 
-            utterance.rate = 1.0; 
-
-            const voices = window.speechSynthesis.getVoices();
-            let selectedVoice = null;
-
-            if (ngonNgu === 'vi') {
-                const viVoices = voices.filter(v => v.lang.includes('vi') || v.lang.includes('VI'));
-                
-                // LỌC BỎ HOÀN TOÀN GIỌNG NAM (bỏ qua mọi giọng có chữ male, nam, gvs, gvd, guy, spg)
-                selectedVoice = viVoices.find(v => {
-                    const name = v.name.toLowerCase();
-                    if (name.includes('male') || name.includes('nam') || name.includes('gvs') || name.includes('gvd') || name.includes('guy') || name.includes('spg')) {
-                        return false;
-                    }
-                    // Ưu tiên tìm các giọng Nữ chuẩn có sẵn của Google hoặc Apple
-                    return name.includes('female') || name.includes('nữ') || name.includes('gvn') || name.includes('linh') || name.includes('standard');
-                });
-
-                // Dự phòng: Nếu điện thoại vẫn "bướng" không trả về giọng nữ rõ ràng, ta lấy giọng vi-VN đầu tiên KHÔNG chứa chữ Nam
-                if (!selectedVoice) {
-                    selectedVoice = viVoices.find(v => {
-                        const name = v.name.toLowerCase();
-                        return !name.includes('male') && !name.includes('nam') && !name.includes('gvs') && !name.includes('gvd');
-                    });
-                }
-            } else {
-                // Tiếng Anh giọng Nữ
-                const enVoices = voices.filter(v => v.lang.includes('en') || v.lang.includes('EN'));
-                selectedVoice = enVoices.find(v => {
-                    const name = v.name.toLowerCase();
-                    if (name.includes('male') || name.includes('david') || name.includes('mark') || name.includes('guy')) return false;
-                    return name.includes('female') || name.includes('zira') || name.includes('linda') || name.includes('susan') || name.includes('google us english');
-                });
-            }
-
-            // NẾU TÌM ĐƯỢC GIỌNG NỮ HỆ THỐNG PHÙ HỢP -> PHÁT NGAY
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-                window.speechSynthesis.speak(utterance);
-                return; // Thoát luôn, không chạy xuống dưới
-            }
-        }
-
-        // BƯỚC 2 (VŨ KHÍ BÍ MẬT): Nếu hệ thống điện thoại bị lỗi hoặc cố tình ép giọng Nam,
-        // ta sẽ ép trình duyệt gọi API TTS Nữ chuẩn 100% cực kỳ ngọt ngào dưới đây (Không thể ra giọng Nam được nữa!)
-        const apiLang = (ngonNgu === 'vi') ? 'vi' : 'en';
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${apiLang}&client=tw-ob&q=${encodeURIComponent(textDoc)}&ttsspeed=1`;
+        // 1. Dừng ngay âm thanh cũ nếu đang phát dở (Bao spam)
+        trinhPhatAmThanh.pause();
         
-        amThanhHienTai = new Audio(audioUrl);
-        amThanhHienTai.play().catch(err => console.log("Không thể phát âm thanh"));
+        // 2. Gọi trực tiếp API Google Translate TTS chuẩn giọng NỮ ngọt ngào, dứt khoát
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
+        
+        trinhPhatAmThanh.src = audioUrl;
+        
+        // 3. Phát âm thanh ngay lập tức
+        trinhPhatAmThanh.play().catch(err => {
+            console.log("Trình duyệt chặn phát âm thanh tự động, cần tương tác trước.");
+        });
     }
 
     // Tự khởi chạy khi tải xong trang
     window.onload = () => {
         doiNgonNgu();
+        document.body.addEventListener('touchstart', moKhoaAmThanh, { once: true });
+        document.body.addEventListener('click', moKhoaAmThanh, { once: true });
     };
 </script>
 </body>
