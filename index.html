@@ -37,7 +37,6 @@
             text-align: center;
         }
 
-        /* Nút tải app màu xanh dương phẳng */
         .download-btn {
             display: inline-flex;
             align-items: center;
@@ -59,7 +58,6 @@
             background-color: #154ec2;
         }
 
-        /* Bộ chọn ngôn ngữ */
         .language-selector {
             background-color: #ffffff;
             padding: 12px;
@@ -89,7 +87,6 @@
             background-color: white;
         }
 
-        /* Lưới bảng chữ cái tự động giãn đều */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr); 
@@ -97,7 +94,6 @@
             margin-top: 10px;
         }
 
-        /* Nút chữ cái phẳng bo góc */
         .grid-container button {
             background: #29b6f6; 
             color: white;
@@ -120,16 +116,9 @@
             opacity: 0.9;
         }
 
-        /* ĐỔI MÀU THEO CỘT CHUẨN */
-        .grid-container button:nth-child(4n+1) { 
-            background: #f25a5a; 
-        }
-        .grid-container button:nth-child(4n+2) { 
-            background: #2ecc71; 
-        }
-        .grid-container button:nth-child(4n+3) { 
-            background: #f3a623; 
-        }
+        .grid-container button:nth-child(4n+1) { background: #f25a5a; }
+        .grid-container button:nth-child(4n+2) { background: #2ecc71; }
+        .grid-container button:nth-child(4n+3) { background: #f3a623; }
     </style>
 </head>
 <body>
@@ -150,108 +139,52 @@
     </div>
 
 <script>
+    // Danh sách chữ cái
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
-    const phienAmTiengViet = {
-        'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
-        'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
-        'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
-        'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
-    };
-
     const chuCaiTiengAnh = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-    const phienAmTiengAnh = {
-        'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch', 
-        'I': 'eye', 'J': 'jay', 'K': 'kay', 'L': 'el', 'M': 'em', 'N': 'en', 'O': 'oh', 'P': 'pee', 
-        'Q': 'cue', 'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'V': 'vee', 'W': 'double you', 
-        'X': 'ex', 'Y': 'why', 'Z': 'zed'
-    };
 
-    // KHỞI TẠO BỘ TỔNG HỢP ÂM THANH NỘI BỘ (Cam kết giọng Nữ chuẩn mầm non)
-    let audioContext = null;
+    // Dùng chung 1 trình phát để tối ưu phản hồi và chống chặn autoplay
+    const trinhPhat = new Audio();
 
-    function initAudioContext() {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-    }
+    // Hàm phát âm thanh siêu tốc lấy trực tiếp từ nguồn API ổn định hơn của Google
+    function phatAm(chuCai, ngonNgu) {
+        // Tắt âm thanh đang phát dở (Bao bé spam gõ nhanh)
+        trinhPhat.pause();
+        trinhPhat.currentTime = 0;
 
-    // Hàm tạo âm thanh giọng nữ nhân tạo trực tiếp bằng Code (Tần số cao, trong trẻo)
-    function playFemaleSynthSound(character, lang) {
-        initAudioContext();
+        let vanBanDoc = chuCai;
         
-        const now = audioContext.currentTime;
-        
-        // Tạo bộ tạo dao động âm
-        const oscillator = audioContext.createOscillator();
-        const formantFilter = audioContext.createBiquadFilter();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(formantFilter);
-        formantFilter.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        // Giọng Nữ có tần số cơ bản cao (từ 220Hz đến 350Hz) để tạo cảm giác giọng trẻ em/nữ
-        let baseFreq = 260; // Tần số giọng nữ ấm
-        
-        if (lang === 'vi') {
-            // Thay đổi tần số nhẹ theo âm điệu tiếng Việt để giống tiếng "A, Bờ, Cờ..."
-            if (['Ă', 'Â', 'B', 'D', 'Đ', 'G', 'H', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'X'].includes(character)) {
-                baseFreq = 290; // Cao độ hơn cho các âm phụ âm
-            }
+        // Cấu hình phát âm chuẩn mầm non cho Tiếng Việt
+        if (ngonNgu === 'vi') {
+            const phienAmVi = {
+                'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
+                'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
+                'M': 'mờ', 'N': 'nờ', 'O': 'o', 'Ô': 'ô', 'Ơ': 'ơ', 'P': 'pờ', 'Q': 'quờ',
+                'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
+            };
+            vanBanDoc = phienAmVi[chuCai] || chuCai;
         } else {
-            baseFreq = 270;
+            // Phiên âm chuẩn cho Tiếng Anh
+            const phienAmEn = {
+                'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch', 
+                'I': 'eye', 'J': 'jay', 'K': 'kay', 'L': 'el', 'M': 'em', 'N': 'en', 'O': 'oh', 'P': 'pee', 
+                'Q': 'cue', 'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'V': 'vee', 'W': 'doubleyou', 
+                'X': 'ex', 'Y': 'why', 'Z': 'zed'
+            };
+            vanBanDoc = phienAmEn[chuCai] || chuCai;
         }
 
-        oscillator.type = 'sawtooth'; // Sóng răng cưa mô phỏng dây thanh quản thực tế
-        oscillator.frequency.setValueAtTime(baseFreq, now);
+        // Tạo link chuẩn gọi trực tiếp vào luồng âm thanh NỮ gốc của Google
+        const mãLang = (ngonNgu === 'vi') ? 'vi' : 'en';
+        trinhPhat.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${mãLang}&client=tw-ob&q=${encodeURIComponent(vanBanDoc)}`;
         
-        // Bộ lọc mô phỏng vòm họng của Nữ (Cắt bớt tần số trầm, giữ tần số cao trong trẻo)
-        formantFilter.type = 'bandpass';
-        formantFilter.frequency.setValueAtTime(1000, now);
-        formantFilter.Q.setValueAtTime(1.5, now);
-
-        // Hiệu ứng phát âm mượt mà (Fade in và Fade out nhanh chống mỏi tai)
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); // To dần lên
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4); // Nhỏ dần và biến mất
-
-        oscillator.start(now);
-        oscillator.stop(now + 0.45);
+        // Thực hiện phát âm thanh
+        trinhPhat.play().catch(e => {
+            console.log("Trình duyệt yêu cầu tương tác trước khi phát tiếng.");
+        });
     }
 
-    // HÀM PHÁT ÂM KẾT HỢP HYBRID (Ưu tiên giọng đọc Google Nữ mượt, nếu bị chặn thì dùng Bộ tổng hợp giọng Nữ nội bộ)
-    let dynamicAudio = null;
-
-    function phatAm(chuCai) {
-        const ngonNgu = document.getElementById('langSelect').value;
-        let textDoc = (ngonNgu === 'vi') ? (phienAmTiengViet[chuCai] || chuCai) : (phienAmTiengAnh[chuCai] || chuCai);
-        let langCode = (ngonNgu === 'vi') ? 'vi' : 'en';
-
-        // Tắt âm thanh cũ ngay lập tức khi bấm spam nhanh
-        if (dynamicAudio) {
-            dynamicAudio.pause();
-            dynamicAudio.currentTime = 0;
-        }
-
-        // Bước 1: Dùng API Google Translate TTS chuẩn giọng Nữ ngọt ngào thông qua phương thức tạo Audio trực tiếp
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-        dynamicAudio = new Audio(audioUrl);
-        
-        let playPromise = dynamicAudio.play();
-
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                // Bước 2 DỰ PHÒNG HOÀN HẢO: Nếu điện thoại chặn tải file từ Google (Lỗi k phát tiếng), 
-                // hệ thống sẽ tự động chuyển sang phát âm thanh Giọng Nữ nhân tạo siêu nhạy ngay lập tức!
-                playFemaleSynthSound(chuCai, ngonNgu);
-            });
-        }
-    }
-
-    // Hàm tạo các nút chữ cái khi đổi ngôn ngữ
+    // Hàm tạo các nút chữ cái khi đổi ngôn ngữ hoặc load trang
     function doiNgonNgu() {
         const ngonNgu = document.getElementById('langSelect').value;
         const grid = document.getElementById('alphabetGrid');
@@ -263,18 +196,16 @@
             const btn = document.createElement('button');
             btn.innerText = chu;
             
-            // Xử lý chạm nhanh chống trễ hoàn hảo
+            // Tối ưu chạm cực nhạy trên màn hình điện thoại, giải quyết triệt để lỗi delay
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
-                initAudioContext();
-                phatAm(chu);
+                phatAm(chu, ngonNgu);
             }, { passive: false });
 
-            // Xử lý click chuột máy tính
+            // Hỗ trợ click chuột trên máy tính
             btn.addEventListener('click', (e) => {
-                initAudioContext();
                 if (e.pointerType !== 'touch') {
-                    phatAm(chu);
+                    phatAm(chu, ngonNgu);
                 }
             });
 
@@ -282,11 +213,9 @@
         });
     }
 
-    // Khởi tạo hệ thống khi tải xong trang
+    // Tự khởi chạy khi mở trang
     window.onload = () => {
         doiNgonNgu();
-        document.body.addEventListener('touchstart', initAudioContext, { once: true });
-        document.body.addEventListener('click', initAudioContext, { once: true });
     };
 </script>
 </body>
