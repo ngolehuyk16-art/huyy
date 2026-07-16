@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Học Chữ Cái ABC Song Ngữ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
 
     <style>
         /* CSS GIAO DIỆN PHẲNG CHUẨN ĐẸP */
@@ -143,17 +144,39 @@
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
     const chuCaiTiengAnh = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
-    // Dùng chung 1 trình phát để tối ưu phản hồi và chống chặn autoplay
-    const trinhPhat = new Audio();
+    // Dùng Web Speech API có sẵn trong trình duyệt - KHÔNG cần internet sau khi tải trang,
+    // KHÔNG bị chặn/giới hạn như API dịch không chính thức của Google.
+    const bomAmThanh = window.speechSynthesis;
+    let danhSachGiong = [];
 
-    // Hàm phát âm thanh siêu tốc lấy trực tiếp từ nguồn API ổn định hơn của Google
+    // Giọng nói được nạp không đồng bộ trên nhiều trình duyệt (đặc biệt Chrome/Android)
+    // nên phải lắng nghe sự kiện voiceschanged rồi mới lưu lại danh sách.
+    function napDanhSachGiong() {
+        danhSachGiong = bomAmThanh.getVoices();
+    }
+    napDanhSachGiong();
+    if (bomAmThanh.onvoiceschanged !== undefined) {
+        bomAmThanh.onvoiceschanged = napDanhSachGiong;
+    }
+
+    // Tìm giọng đọc phù hợp nhất có sẵn trên máy cho ngôn ngữ yêu cầu
+    function timGiongPhuHop(maNgonNgu) {
+        if (!danhSachGiong.length) return null;
+        // Ưu tiên khớp chính xác (vi-VN / en-US), sau đó khớp tiền tố (vi / en)
+        return (
+            danhSachGiong.find(g => g.lang === maNgonNgu) ||
+            danhSachGiong.find(g => g.lang && g.lang.startsWith(maNgonNgu.split('-')[0])) ||
+            null
+        );
+    }
+
+    // Hàm phát âm dùng giọng đọc gốc của thiết bị (điện thoại/máy tính)
     function phatAm(chuCai, ngonNgu) {
-        // Tắt âm thanh đang phát dở (Bao bé spam gõ nhanh)
-        trinhPhat.pause();
-        trinhPhat.currentTime = 0;
+        // Hủy câu đang đọc dở nếu bé bấm liên tục
+        bomAmThanh.cancel();
 
         let vanBanDoc = chuCai;
-        
+
         // Cấu hình phát âm chuẩn mầm non cho Tiếng Việt
         if (ngonNgu === 'vi') {
             const phienAmVi = {
@@ -166,22 +189,29 @@
         } else {
             // Phiên âm chuẩn cho Tiếng Anh
             const phienAmEn = {
-                'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch', 
-                'I': 'eye', 'J': 'jay', 'K': 'kay', 'L': 'el', 'M': 'em', 'N': 'en', 'O': 'oh', 'P': 'pee', 
-                'Q': 'cue', 'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'V': 'vee', 'W': 'doubleyou', 
+                'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch',
+                'I': 'eye', 'J': 'jay', 'K': 'kay', 'L': 'el', 'M': 'em', 'N': 'en', 'O': 'oh', 'P': 'pee',
+                'Q': 'cue', 'R': 'ar', 'S': 'ess', 'T': 'tee', 'U': 'you', 'V': 'vee', 'W': 'doubleyou',
                 'X': 'ex', 'Y': 'why', 'Z': 'zed'
             };
             vanBanDoc = phienAmEn[chuCai] || chuCai;
         }
 
-        // Tạo link chuẩn gọi trực tiếp vào luồng âm thanh NỮ gốc của Google
-        const mãLang = (ngonNgu === 'vi') ? 'vi' : 'en';
-        trinhPhat.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${mãLang}&client=tw-ob&q=${encodeURIComponent(vanBanDoc)}`;
-        
-        // Thực hiện phát âm thanh
-        trinhPhat.play().catch(e => {
-            console.log("Trình duyệt yêu cầu tương tác trước khi phát tiếng.");
-        });
+        const maNgonNgu = (ngonNgu === 'vi') ? 'vi-VN' : 'en-US';
+
+        const cauNoi = new SpeechSynthesisUtterance(vanBanDoc);
+        cauNoi.lang = maNgonNgu;
+        cauNoi.rate = 0.8;   // đọc chậm rãi, dễ nghe cho bé
+        cauNoi.pitch = 1.1;
+
+        const giongPhuHop = timGiongPhuHop(maNgonNgu);
+        if (giongPhuHop) cauNoi.voice = giongPhuHop;
+
+        cauNoi.onerror = () => {
+            console.log("Không thể phát âm - thiết bị có thể chưa hỗ trợ giọng đọc này.");
+        };
+
+        bomAmThanh.speak(cauNoi);
     }
 
     // Hàm tạo các nút chữ cái khi đổi ngôn ngữ hoặc load trang
@@ -196,17 +226,11 @@
             const btn = document.createElement('button');
             btn.innerText = chu;
             
-            // Tối ưu chạm cực nhạy trên màn hình điện thoại, giải quyết triệt để lỗi delay
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault(); 
+            // Dùng MỘT sự kiện duy nhất (pointerdown) cho cả chạm lẫn click chuột,
+            // tránh lỗi phát âm 2 lần từng gặp khi vừa bắt touchstart vừa bắt click.
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 phatAm(chu, ngonNgu);
-            }, { passive: false });
-
-            // Hỗ trợ click chuột trên máy tính
-            btn.addEventListener('click', (e) => {
-                if (e.pointerType !== 'touch') {
-                    phatAm(chu, ngonNgu);
-                }
             });
 
             grid.appendChild(btn);

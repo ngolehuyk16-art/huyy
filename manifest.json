@@ -1,0 +1,13 @@
+{
+  "background_color": "#20c9c4",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Học Chữ Cái ABC Song Ngữ",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "ABC Song Ngữ",
+  "start_url": "/",
+  "theme_color": "#2393b2",
+  "id": "abcsongnguapp",
+  "description": "Ứng dụng học chữ cái tiếng Việt và tiếng Anh phát âm chuẩn dành cho trẻ mầm non."
+}
