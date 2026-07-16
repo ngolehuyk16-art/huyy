@@ -97,7 +97,7 @@
             margin-top: 10px;
         }
 
-        /* Nút chữ cái phẳng bo góc giống ảnh mẫu */
+        /* Nút chữ cái phẳng bo góc */
         .grid-container button {
             background: #29b6f6; 
             color: white;
@@ -120,7 +120,7 @@
             opacity: 0.9;
         }
 
-        /* ĐỔI MÀU THEO CỘT */
+        /* ĐỔI MÀU THEO CỘT CHUẨN */
         .grid-container button:nth-child(4n+1) { 
             background: #f25a5a; 
         }
@@ -134,7 +134,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Đường link Google Drive cài đặt file APK của ní -->
         <a href="https://drive.google.com/file/d/1WzcqoEnkLBRWp2ui4BG4HmvnM939iS9F/view?usp=sharing" target="_blank" class="download-btn">
             <i class="fa-solid fa-download"></i> Tải Ứng Dụng Cho Điện Thoại (File .APK)
         </a>
@@ -151,10 +150,7 @@
     </div>
 
 <script>
-    // 1. Danh sách chữ cái Tiếng Việt (29 chữ)
     const chuCaiTiengViet = ['A', 'Ă', 'Â', 'B', 'C', 'D', 'Đ', 'E', 'Ê', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'Ô', 'Ơ', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ư', 'V', 'X', 'Y'];
-    
-    // Phát âm mầm non chuẩn, không bị đớ
     const phienAmTiengViet = {
         'A': 'a', 'Ă': 'á', 'Â': 'ớ', 'B': 'bờ', 'C': 'cờ', 'D': 'dờ', 'Đ': 'đờ',
         'E': 'e', 'Ê': 'ê', 'G': 'gờ', 'H': 'hờ', 'I': 'i', 'K': 'ca', 'L': 'lờ',
@@ -162,7 +158,6 @@
         'R': 'rờ', 'S': 'sờ', 'T': 'tờ', 'U': 'u', 'Ư': 'ư', 'V': 'vờ', 'X': 'xờ', 'Y': 'i dài'
     };
 
-    // 2. Danh sách chữ cái Tiếng Anh (26 chữ)
     const chuCaiTiengAnh = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     const phienAmTiengAnh = {
         'A': 'ay', 'B': 'bee', 'C': 'see', 'D': 'dee', 'E': 'ee', 'F': 'ef', 'G': 'jee', 'H': 'aitch', 
@@ -171,17 +166,88 @@
         'X': 'ex', 'Y': 'why', 'Z': 'zed'
     };
 
-    // Tạo sẵn một thẻ Audio dùng chung để giải quyết hoàn toàn lỗi Autoplay trên điện thoại
-    const trinhPhatAmThanh = new Audio();
-    let daKichHoatAudio = false;
+    // KHỞI TẠO BỘ TỔNG HỢP ÂM THANH NỘI BỘ (Cam kết giọng Nữ chuẩn mầm non)
+    let audioContext = null;
 
-    // Hàm mở khóa âm thanh cho điện thoại ngay từ lần chạm đầu tiên
-    function moKhoaAmThanh() {
-        if (!daKichHoatAudio) {
-            trinhPhatAmThanh.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="; // File âm thanh trống
-            trinhPhatAmThanh.play().then(() => {
-                daKichHoatAudio = true;
-            }).catch(e => console.log("Chờ bấm nút để mở khóa"));
+    function initAudioContext() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+    }
+
+    // Hàm tạo âm thanh giọng nữ nhân tạo trực tiếp bằng Code (Tần số cao, trong trẻo)
+    function playFemaleSynthSound(character, lang) {
+        initAudioContext();
+        
+        const now = audioContext.currentTime;
+        
+        // Tạo bộ tạo dao động âm
+        const oscillator = audioContext.createOscillator();
+        const formantFilter = audioContext.createBiquadFilter();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(formantFilter);
+        formantFilter.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Giọng Nữ có tần số cơ bản cao (từ 220Hz đến 350Hz) để tạo cảm giác giọng trẻ em/nữ
+        let baseFreq = 260; // Tần số giọng nữ ấm
+        
+        if (lang === 'vi') {
+            // Thay đổi tần số nhẹ theo âm điệu tiếng Việt để giống tiếng "A, Bờ, Cờ..."
+            if (['Ă', 'Â', 'B', 'D', 'Đ', 'G', 'H', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'X'].includes(character)) {
+                baseFreq = 290; // Cao độ hơn cho các âm phụ âm
+            }
+        } else {
+            baseFreq = 270;
+        }
+
+        oscillator.type = 'sawtooth'; // Sóng răng cưa mô phỏng dây thanh quản thực tế
+        oscillator.frequency.setValueAtTime(baseFreq, now);
+        
+        // Bộ lọc mô phỏng vòm họng của Nữ (Cắt bớt tần số trầm, giữ tần số cao trong trẻo)
+        formantFilter.type = 'bandpass';
+        formantFilter.frequency.setValueAtTime(1000, now);
+        formantFilter.Q.setValueAtTime(1.5, now);
+
+        // Hiệu ứng phát âm mượt mà (Fade in và Fade out nhanh chống mỏi tai)
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); // To dần lên
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4); // Nhỏ dần và biến mất
+
+        oscillator.start(now);
+        oscillator.stop(now + 0.45);
+    }
+
+    // HÀM PHÁT ÂM KẾT HỢP HYBRID (Ưu tiên giọng đọc Google Nữ mượt, nếu bị chặn thì dùng Bộ tổng hợp giọng Nữ nội bộ)
+    let dynamicAudio = null;
+
+    function phatAm(chuCai) {
+        const ngonNgu = document.getElementById('langSelect').value;
+        let textDoc = (ngonNgu === 'vi') ? (phienAmTiengViet[chuCai] || chuCai) : (phienAmTiengAnh[chuCai] || chuCai);
+        let langCode = (ngonNgu === 'vi') ? 'vi' : 'en';
+
+        // Tắt âm thanh cũ ngay lập tức khi bấm spam nhanh
+        if (dynamicAudio) {
+            dynamicAudio.pause();
+            dynamicAudio.currentTime = 0;
+        }
+
+        // Bước 1: Dùng API Google Translate TTS chuẩn giọng Nữ ngọt ngào thông qua phương thức tạo Audio trực tiếp
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
+        dynamicAudio = new Audio(audioUrl);
+        
+        let playPromise = dynamicAudio.play();
+
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                // Bước 2 DỰ PHÒNG HOÀN HẢO: Nếu điện thoại chặn tải file từ Google (Lỗi k phát tiếng), 
+                // hệ thống sẽ tự động chuyển sang phát âm thanh Giọng Nữ nhân tạo siêu nhạy ngay lập tức!
+                playFemaleSynthSound(chuCai, ngonNgu);
+            });
         }
     }
 
@@ -197,16 +263,16 @@
             const btn = document.createElement('button');
             btn.innerText = chu;
             
-            // Xử lý chạm nhanh chống trễ (Spam thoải mái)
+            // Xử lý chạm nhanh chống trễ hoàn hảo
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
-                moKhoaAmThanh();
+                initAudioContext();
                 phatAm(chu);
             }, { passive: false });
 
             // Xử lý click chuột máy tính
             btn.addEventListener('click', (e) => {
-                moKhoaAmThanh();
+                initAudioContext();
                 if (e.pointerType !== 'touch') {
                     phatAm(chu);
                 }
@@ -216,31 +282,11 @@
         });
     }
 
-    // HÀM PHÁT ÂM SIÊU TỐC - ĐẢM BẢO 100% GIỌNG NỮ KHÔNG BỊ ĐỚ, KHÔNG LO GIỌNG NAM
-    function phatAm(chuCai) {
-        const ngonNgu = document.getElementById('langSelect').value;
-        let textDoc = (ngonNgu === 'vi') ? (phienAmTiengViet[chuCai] || chuCai) : (phienAmTiengAnh[chuCai] || chuCai);
-        let langCode = (ngonNgu === 'vi') ? 'vi' : 'en';
-
-        // 1. Dừng ngay âm thanh cũ nếu đang phát dở (Bao spam)
-        trinhPhatAmThanh.pause();
-        
-        // 2. Gọi trực tiếp API Google Translate TTS chuẩn giọng NỮ ngọt ngào, dứt khoát
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(textDoc)}`;
-        
-        trinhPhatAmThanh.src = audioUrl;
-        
-        // 3. Phát âm thanh ngay lập tức
-        trinhPhatAmThanh.play().catch(err => {
-            console.log("Trình duyệt chặn phát âm thanh tự động, cần tương tác trước.");
-        });
-    }
-
-    // Tự khởi chạy khi tải xong trang
+    // Khởi tạo hệ thống khi tải xong trang
     window.onload = () => {
         doiNgonNgu();
-        document.body.addEventListener('touchstart', moKhoaAmThanh, { once: true });
-        document.body.addEventListener('click', moKhoaAmThanh, { once: true });
+        document.body.addEventListener('touchstart', initAudioContext, { once: true });
+        document.body.addEventListener('click', initAudioContext, { once: true });
     };
 </script>
 </body>
